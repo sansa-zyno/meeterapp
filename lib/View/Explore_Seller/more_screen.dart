@@ -1,11 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:meeter/Model/meetup_data.dart';
 import 'package:meeter/Widgets/MeeterAppBar/meeterAppBar.dart';
 import 'package:meeter/Widgets/HWidgets/more_list.dart';
 
 class MoreScreen extends StatefulWidget {
-  final List<QueryDocumentSnapshot> meetersCollection;
-  MoreScreen(this.meetersCollection);
+  final List<List<MeetupData>> meetersCollections;
+  MoreScreen(this.meetersCollections);
   @override
   _MoreScreenState createState() => _MoreScreenState();
 }
@@ -25,7 +25,7 @@ class _MoreScreenState extends State<MoreScreen> {
               children: [
                 SizedBox(height: 100),
                 MoreLists(
-                  meetersCollection: widget.meetersCollection,
+                  meetersCollections: widget.meetersCollections,
                 ),
               ],
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:meeter/Controller/user_controller.dart';
+import 'package:meeter/Providers/user_controller.dart';
+import 'package:meeter/View/Profile/profile_setup.dart';
 import 'package:provider/provider.dart';
 import 'login.dart';
 import './verification.dart';
@@ -56,59 +57,74 @@ class _AuthMainState extends State<AuthMain> {
       print("Error catch 1 $e");
     }
 
-    try {
-      QuerySnapshot docs = await FirebaseFirestore.instance
-          .collection("users")
-          .where("uid", isEqualTo: uid)
-          .get();
-      if (docs.docs.length > 0) {
-        print("User already exists from auth screen");
-        UserController _currentUser =
-            Provider.of<UserController>(context, listen: false);
-        _currentUser.getCurrentUserInfo();
-        SharedPreferences _prefs = await SharedPreferences.getInstance();
-        _prefs.setString('userName', docs.docs[0]['displayName']);
-        Navigator.pushAndRemoveUntil(
-            context,
-            PageTransition(
-              type: PageTransitionType.rightToLeft,
-              duration: Duration(milliseconds: 200),
-              curve: Curves.easeIn,
-              child: BottomNavBar(),
-            ),
-            (route) => false);
-      } else {
-        OurUser _user = OurUser();
-        try {
-          FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-          String fcmToken = await firebaseMessaging.getToken();
-          await FirebaseFirestore.instance.collection("users").doc(uid).set({
-            "uid": uid,
-            "phoneNumber": FirebaseAuth.instance.currentUser.phoneNumber,
-            "accountCreated": Timestamp.now(),
-            "avatarUrl": _user.avatarUrl,
-            "age": _user.age,
-            "country": _user.country,
-            "displayName": _user.displayName,
-            "token": fcmToken,
-            "userType": _user.userType,
-            "verified": _user.verified,
-          });
-          Navigator.push(
-            context,
-            PageTransition(
-              type: PageTransitionType.rightToLeft,
-              duration: Duration(milliseconds: 200),
-              curve: Curves.easeIn,
-              child: VerificationSuccess(),
-            ),
-          );
-        } catch (e) {
-          print(" Error catch 2 $e");
+    if (uid != null) {
+      try {
+        QuerySnapshot snap = await FirebaseFirestore.instance
+            .collection("users")
+            .where("uid", isEqualTo: uid)
+            .get();
+        if (snap.docs.length > 0) {
+          print("User already exists from auth screen");
+          if (snap.docs[0]['displayName'] != null &&
+              snap.docs[0]['avatarUrl'] != null) {
+            UserController _currentUser =
+                Provider.of<UserController>(context, listen: false);
+            _currentUser.getCurrentUserInfo();
+            SharedPreferences _prefs = await SharedPreferences.getInstance();
+            _prefs.setString('userName', snap.docs[0]['displayName']);
+            Navigator.pushAndRemoveUntil(
+                context,
+                PageTransition(
+                  type: PageTransitionType.rightToLeft,
+                  duration: Duration(milliseconds: 200),
+                  curve: Curves.easeIn,
+                  child: BottomNavBar(),
+                ),
+                (route) => false);
+          } else {
+            Navigator.pushAndRemoveUntil(
+                context,
+                PageTransition(
+                  type: PageTransitionType.rightToLeft,
+                  duration: Duration(milliseconds: 200),
+                  curve: Curves.easeIn,
+                  child: ProfileSetup(),
+                ),
+                (route) => false);
+          }
+        } else {
+          OurUser _user = OurUser();
+          try {
+            FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
+            String fcmToken = await firebaseMessaging.getToken();
+            await FirebaseFirestore.instance.collection("users").doc(uid).set({
+              "uid": uid,
+              "phoneNumber": FirebaseAuth.instance.currentUser.phoneNumber,
+              "accountCreated": Timestamp.now(),
+              "avatarUrl": _user.avatarUrl,
+              "age": _user.age,
+              "country": _user.country,
+              "displayName": _user.displayName,
+              "token": fcmToken,
+              "userType": _user.userType,
+              "verified": _user.verified,
+            });
+            Navigator.pushAndRemoveUntil(
+                context,
+                PageTransition(
+                  type: PageTransitionType.rightToLeft,
+                  duration: Duration(milliseconds: 200),
+                  curve: Curves.easeIn,
+                  child: VerificationSuccess(),
+                ),
+                (route) => false);
+          } catch (e) {
+            print(" Error catch 2 $e");
+          }
         }
+      } catch (e) {
+        print("Error catch 3 $e");
       }
-    } catch (e) {
-      print("Error catch 3 $e");
     }
   }
 
@@ -152,7 +168,6 @@ class _AuthMainState extends State<AuthMain> {
   }
 
   void verificationFailed(FirebaseAuthException exception) {
-    print("here");
     AchievementView(
       context,
       color: Colors.red,

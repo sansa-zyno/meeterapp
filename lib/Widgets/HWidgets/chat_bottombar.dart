@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:meeter/Controller/user_controller.dart';
+import 'package:meeter/providers/user_controller.dart';
 import 'package:meeter/Model/user.dart';
 import 'package:meeter/Services/database.dart';
 import 'package:meeter/Services/image_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
+//import 'package:uuid/uuid.dart';
 
 class ChatBottomBar extends StatefulWidget {
   final OurUser recipient;
@@ -32,7 +32,7 @@ class _ChatBottomBarState extends State<ChatBottomBar> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     myUserName = prefs.getString('userName');
     chatRoomId =
-        getChatRoomIdByUsernames(widget.recipient.displayName, myUserName);
+        getChatRoomIdByUsernames(myUserName, widget.recipient.displayName);
   }
 
   addMessage(bool sendClicked, context) {
@@ -45,6 +45,7 @@ class _ChatBottomBarState extends State<ChatBottomBar> {
       var lastMessageTs = DateTime.now();
       Map<String, dynamic> messageInfoMap = {
         "type": 'text',
+        "read": false,
         "message": message,
         "sendBy": user.displayName,
         "ts": lastMessageTs,
@@ -52,18 +53,18 @@ class _ChatBottomBarState extends State<ChatBottomBar> {
       };
 
       //messageId
-      if (messageId == "") {
+      /* if (messageId == "") {
         messageId = Uuid().v4();
-      }
+      }*/
 
-      Database()
-          .addMessage(chatRoomId, messageId, messageInfoMap)
-          .then((value) {
+      Database().addMessage(chatRoomId, messageInfoMap).then((value) {
         Map<String, dynamic> lastMessageInfoMap = {
           "type": 'text',
+          "read": false,
           "lastMessage": message,
           "lastMessageSendTs": lastMessageTs,
-          "lastMessageSendBy": myUserName
+          "lastMessageSendBy": myUserName,
+          "lastMessageSendByImgUrl": user.avatarUrl
         };
 
         Database().updateLastMessageSend(chatRoomId, lastMessageInfoMap);
@@ -72,7 +73,7 @@ class _ChatBottomBarState extends State<ChatBottomBar> {
           // remove the text in the message input field
           messageTextEdittingController.text = "";
           // make message id blank to get regenerated on next message send
-          messageId = "";
+          // messageId = "";
         }
       });
     }

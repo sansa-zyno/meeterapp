@@ -1,17 +1,18 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:meeter/Model/demand_data.dart';
 import 'package:meeter/View/Explore_buyer/detail_buyer_screen.dart';
 
 class MoreListsBuyer extends StatelessWidget {
   final String picture;
-  final List<QueryDocumentSnapshot> meeters2Collection;
-
-  MoreListsBuyer({this.picture, this.meeters2Collection});
+  final List<List<DemandData>> demandsCollections;
+  MoreListsBuyer({this.picture, this.demandsCollections});
 
   @override
   Widget build(BuildContext context) {
     var w = MediaQuery.of(context).size.width / 100;
     var h = MediaQuery.of(context).size.height / 100;
+    List<DemandData> demandsCollection =
+        demandsCollections.expand((x) => x).toList();
     return Column(
       children: <Widget>[
         GridView.builder(
@@ -21,7 +22,7 @@ class MoreListsBuyer extends StatelessWidget {
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
           ),
-          itemCount: meeters2Collection.length,
+          itemCount: demandsCollection.length,
           itemBuilder: (context, index) {
             return Padding(
               padding: EdgeInsets.symmetric(
@@ -51,7 +52,7 @@ class MoreListsBuyer extends StatelessWidget {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(15),
                             child: Image.network(
-                              meeters2Collection[index]["demand_bannerImage"],
+                              demandsCollection[index].demand_bannerImage,
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -59,7 +60,7 @@ class MoreListsBuyer extends StatelessWidget {
                         Padding(
                           padding: EdgeInsets.all(w * 1.5),
                           child: Text(
-                            meeters2Collection[index]["demand_title"],
+                            demandsCollection[index].demand_title,
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
                               color: Colors.black,
@@ -71,7 +72,7 @@ class MoreListsBuyer extends StatelessWidget {
                         Padding(
                           padding: EdgeInsets.all(w * 1.1),
                           child: Text(
-                            "\$${meeters2Collection[index]['demand_price']} per 30min",
+                            "\$${demandsCollection[index].demand_price} per 30min",
                             style: TextStyle(
                               color: Colors.green,
                               fontSize: 17.0,
@@ -85,7 +86,7 @@ class MoreListsBuyer extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          DetailsBuyerScreen(meeters2Collection[index]),
+                          DetailsBuyerScreen(demandsCollection[index]),
                     ),
                   );
                 },

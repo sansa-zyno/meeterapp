@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Cards extends StatelessWidget {
+  final List<DocumentSnapshot> docs;
+  Cards({this.docs});
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;

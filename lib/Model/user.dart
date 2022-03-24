@@ -50,7 +50,7 @@ class OurUser {
         verified: _data["verified"] ?? "",
         bio: _data["bio"] ?? "",
         occupation: _data["occupation"] ?? "",
-        about: _data["aboutUser"] ?? false,
+        about: _data["userAbout"] ?? false,
         interests: _data["userInterests"] ?? false,
         isSelling: _data["isSelling"] ?? false,
         meetSetup: _data["meetSetup"] ?? false,

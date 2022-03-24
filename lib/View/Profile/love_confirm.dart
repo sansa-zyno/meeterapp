@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meeter/Controller/user_controller.dart';
-import 'package:meeter/Model/user.dart';
+import 'package:meeter/Providers/user_controller.dart';
 import 'package:meeter/Widgets/MeeterAppBar/meeterAppBar.dart';
 import 'package:meeter/Widgets/TextWidgets/poppins_text.dart';
 import 'package:provider/provider.dart';

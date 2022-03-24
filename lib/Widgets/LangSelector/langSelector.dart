@@ -3,13 +3,16 @@ import 'package:meeter/View/Profile/const/gradient_const.dart';
 
 class LangSelector extends StatefulWidget {
   String ith;
+  String val;
+  String prof;
+
   String _currentLanguage;
   String _currentProf;
 
   String get getcurrentLanguage => _currentLanguage;
   String get getcurrentProf => _currentProf;
 
-  LangSelector({this.ith});
+  LangSelector({this.ith, this.val, this.prof});
 
   @override
   _LangSelectorState createState() => _LangSelectorState();
@@ -299,33 +302,41 @@ class _LangSelectorState extends State<LangSelector> {
               flex: 2,
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
-                  isDense: false,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black,
-                  ),
-                  isExpanded: true,
-                  onChanged: change,
-                  items: array.map((items) {
-                    return DropdownMenuItem<String>(
-                      onTap: () {},
-                      value: items,
-                      child: Text(
-                        items,
-                        textScaleFactor: 1,
-                      ),
-                    );
-                  }).toList(),
-                  value: currentLocation,
-                ),
+                    isDense: false,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: "Nunito",
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black,
+                    ),
+                    isExpanded: true,
+                    onChanged: change,
+                    items: array.map((item) {
+                      return DropdownMenuItem<String>(
+                        onTap: () {},
+                        value: item,
+                        child: Text(
+                          item,
+                          textScaleFactor: 1,
+                        ),
+                      );
+                    }).toList(),
+                    value: currentLocation),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    widget._currentLanguage = widget.val;
+    widget._currentProf = widget.prof;
+    setState(() {});
   }
 
   @override

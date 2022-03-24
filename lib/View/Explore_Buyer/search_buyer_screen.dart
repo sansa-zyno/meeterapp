@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:meeter/View/Explore_Buyer/buyer_search_result_screen.dart';
 import 'package:meeter/Widgets/HWidgets/search_filter.dart';
-import 'package:meeter/View/Dashboard/activity_buyer.dart';
 import 'package:meeter/Widgets/HWidgets/menu.dart';
+import 'package:meeter/Providers/application_bloc.dart';
+import 'package:provider/provider.dart';
 
 class SearchBuyerScreen extends StatefulWidget {
-  final searchText;
-  SearchBuyerScreen({this.searchText});
+  //final searchText;
+  //SearchBuyerScreen({this.searchText});
 
   @override
   _SearchBuyerScreenState createState() => _SearchBuyerScreenState();
@@ -14,12 +14,12 @@ class SearchBuyerScreen extends StatefulWidget {
 
 class _SearchBuyerScreenState extends State<SearchBuyerScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  TextEditingController searchController;
+  //TextEditingController searchController;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    searchController = TextEditingController(text: widget.searchText);
+    //searchController = TextEditingController(text: widget.searchText);
     setState(() {});
   }
 
@@ -28,6 +28,7 @@ class _SearchBuyerScreenState extends State<SearchBuyerScreen> {
     var w = MediaQuery.of(context).size.width / 100;
     print(w);
     var h = MediaQuery.of(context).size.height / 100;
+    ApplicationBloc _appBloc = Provider.of<ApplicationBloc>(context);
     print(h);
     return Scaffold(
       key: _scaffoldKey,
@@ -78,42 +79,6 @@ class _SearchBuyerScreenState extends State<SearchBuyerScreen> {
                               ),
                             ),
                           ),
-                          /* Container(
-                            alignment: Alignment.centerRight,
-                            child: Row(
-                              children: [
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              BuyerActivityScreen(),
-                                        ),
-                                      );
-                                    },
-                                    child: Container(
-                                      height: h * 5.6,
-                                      width: w * 12.1,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius:
-                                            BorderRadius.circular(50 / 2),
-                                      ),
-                                      child: Center(
-                                        child: Icon(
-                                          Icons.notifications_outlined,
-                                          color: Colors.green,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),*/
                         ],
                       ),
                       SizedBox(height: h * 10.1),
@@ -121,7 +86,7 @@ class _SearchBuyerScreenState extends State<SearchBuyerScreen> {
                         children: [
                           Expanded(
                             child: TextField(
-                              controller: searchController,
+                              controller: _appBloc.searchController2,
                               decoration: InputDecoration(
                                 filled: true,
                                 fillColor: Colors.white,
@@ -131,21 +96,6 @@ class _SearchBuyerScreenState extends State<SearchBuyerScreen> {
                                   ),
                                 ),
                                 hintText: 'Search',
-                                /*suffixIcon: IconButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            BuyerSearchResultScreen(),
-                                      ),
-                                    );
-                                  },
-                                  icon: Icon(
-                                    Icons.search_rounded,
-                                    color: Colors.green,
-                                  ),
-                                ),*/
                               ),
                             ),
                           ),
@@ -158,7 +108,6 @@ class _SearchBuyerScreenState extends State<SearchBuyerScreen> {
               SizedBox(height: h * 1.6),
               SearchFilter(
                 clr: Colors.green,
-                searchText: searchController.text,
               ),
               SizedBox(
                 height: h * 8.9,

@@ -1,11 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:meeter/View/Explore_Seller/detail_screen.dart';
 import 'package:meeter/View/Explore_Buyer/detail_buyer_screen.dart';
 
 class SearchList extends StatelessWidget {
   final Color clr;
-  final List<DocumentSnapshot> ldoc;
+  final List ldoc;
   SearchList({this.clr, this.ldoc});
 
   @override
@@ -70,12 +69,12 @@ class SearchList extends StatelessWidget {
                                   ),
                                   child: clr == Colors.blue
                                       ? ClipRRect(
-                                          child: Image.network(ldoc[index]
-                                              ['meetup_seller_image']),
+                                          child: Image.network(
+                                              ldoc[index].meetup_seller_image),
                                         )
                                       : ClipRRect(
-                                          child: Image.network(ldoc[index]
-                                              ['demand_person_image']),
+                                          child: Image.network(
+                                              ldoc[index].demand_person_image),
                                         ),
                                 ),
                               ),
@@ -90,7 +89,7 @@ class SearchList extends StatelessWidget {
                                       alignment: Alignment.centerLeft,
                                       child: clr == Colors.blue
                                           ? Text(
-                                              ldoc[index]['meetup_seller_name'],
+                                              ldoc[index].meetup_seller_name,
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16,
@@ -99,7 +98,7 @@ class SearchList extends StatelessWidget {
                                               textAlign: TextAlign.start,
                                             )
                                           : Text(
-                                              ldoc[index]['demand_person_name'],
+                                              ldoc[index].demand_person_name,
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16,
@@ -115,7 +114,7 @@ class SearchList extends StatelessWidget {
                                       alignment: Alignment.centerLeft,
                                       child: clr == Colors.blue
                                           ? Text(
-                                              ldoc[index]['meetup_description'],
+                                              ldoc[index].meetup_description,
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 14,
@@ -124,7 +123,7 @@ class SearchList extends StatelessWidget {
                                               textAlign: TextAlign.start,
                                             )
                                           : Text(
-                                              ldoc[index]['demand_description'],
+                                              ldoc[index].demand_description,
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 14,
@@ -136,25 +135,11 @@ class SearchList extends StatelessWidget {
                                     SizedBox(
                                       height: h * 1.1,
                                     ),
-                                    /* Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        "Business",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: w * 2.6,
-                                          color: Colors.black,
-                                        ),
-                                        textAlign: TextAlign.start,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: h * 1.1,
-                                    ),*/
                                     Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
                                       children: [
-                                        Align(
-                                          alignment: Alignment.centerLeft,
+                                        Expanded(
                                           child: Text(
                                             "Ratings:",
                                             style: TextStyle(
@@ -165,17 +150,16 @@ class SearchList extends StatelessWidget {
                                             textAlign: TextAlign.start,
                                           ),
                                         ),
-                                        SizedBox(
-                                          width: w * 3.6,
-                                        ),
-                                        Text(
-                                          'Overwhelmingly Positive',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 12,
-                                            color: Colors.black,
+                                        Expanded(
+                                          child: Text(
+                                            'Overwhelmingly Positive',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 12,
+                                              color: Colors.black,
+                                            ),
+                                            textAlign: TextAlign.start,
                                           ),
-                                          textAlign: TextAlign.start,
                                         ),
                                       ],
                                     ),

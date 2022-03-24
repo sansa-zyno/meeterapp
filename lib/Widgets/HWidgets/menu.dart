@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:getwidget/components/drawer/gf_drawer.dart';
-import 'package:meeter/Controller/user_controller.dart';
+import 'package:meeter/Providers/user_controller.dart';
 import 'package:meeter/Model/user.dart';
-import 'package:meeter/View/Auth/login.dart';
+import 'package:meeter/View/Auth/authMain.dart';
 import 'package:meeter/View/Profile/profile_preview.dart';
 import 'package:meeter/View/calendar_screen.dart';
-import 'package:meeter/View/chat_screen.dart';
-import 'package:meeter/View/favourites.dart';
 import 'package:meeter/View/messages_screen.dart';
+import 'package:meeter/View/favourites.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Menu extends StatefulWidget {
   final Color clr;
@@ -37,52 +37,6 @@ class _MenuState extends State<Menu> {
       child: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            // Expanded(
-            //   flex: 0, //   child: GestureDetector(
-            //     child: Column(
-            //       children: <Widget>[
-            //         SizedBox(
-            //           height: h * 2.48,
-            //         ),
-            //         SizedBox(
-            //           height: h * 4.4,
-            //         ),
-            //         Container(
-            //           width: w * 63.4,
-            //           child: TextField(
-            //             decoration: InputDecoration(
-            //               enabledBorder: OutlineInputBorder(
-            //                 borderSide: BorderSide(
-            //                   color: Colors.blue,
-            //                 ),
-            //                 borderRadius: BorderRadius.all(
-            //                   Radius.circular(50),
-            //                 ),
-            //               ),
-            //               filled: true,
-            //               fillColor: Colors.blue[300],
-            //               border: OutlineInputBorder(
-            //                 borderRadius: BorderRadius.all(
-            //                   Radius.circular(50),
-            //                 ),
-            //               ),
-            //               hintText: 'Type a message...',
-            //               hintStyle: TextStyle(color: Colors.white),
-            //               suffixIcon: IconButton(
-            //                 onPressed: () {},
-            //                 icon: Icon(
-            //                   Icons.search,
-            //                   color: Colors.white,
-            //                 ),
-            //               ),
-            //             ),
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //     onTap: () {},
-            //   ),
-            // ),
             SizedBox(height: h * 5.8),
             Column(
               children: <Widget>[
@@ -115,7 +69,7 @@ class _MenuState extends State<Menu> {
                                   letterSpacing: 1,
                                   color: Colors.white),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -125,43 +79,6 @@ class _MenuState extends State<Menu> {
                         .push(MaterialPageRoute(builder: (ctx) => Messages()));
                   },
                 ),
-                // GestureDetector(
-                //   child: ListTile(
-                //     title: Container(
-                //       alignment: Alignment.center,
-                //       height: h * 4.2217,
-                //       child: Row(
-                //         children: <Widget>[
-                //           Padding(
-                //             padding: EdgeInsets.symmetric(
-                //                 horizontal: w * 2.037, vertical: h * 0),
-                //             child: Icon(
-                //               Icons.graphic_eq,
-                //               color: Colors.white,
-                //             ),
-                //           ),
-                //           Padding(
-                //             padding: EdgeInsets.symmetric(
-                //                 horizontal: w * 2.037, vertical: h * 0),
-                //             child: Text(
-                //               "Trending",
-                //               textScaleFactor: 1,
-                //               textAlign: TextAlign.left,
-                //               style: TextStyle(
-                //                 fontFamily: "Nunito",
-                //                 fontWeight: FontWeight.w700,
-                //                 fontSize: w * 3.819,
-                //                 letterSpacing: 1,
-                //                 color: Colors.white,
-                //               ),
-                //             ),
-                //           )
-                //         ],
-                //       ),
-                //     ),
-                //   ),
-                //   onTap: () {},
-                // ),
                 GestureDetector(
                   child: ListTile(
                     title: Container(
@@ -202,44 +119,6 @@ class _MenuState extends State<Menu> {
                         MaterialPageRoute(builder: (ctx) => Favourites()));
                   },
                 ),
-                // GestureDetector(
-                //   child: ListTile(
-                //     title: Container(
-                //       alignment: Alignment.center,
-                //       height: h * 4.2217,
-                //       child: Row(
-                //         children: <Widget>[
-                //           Padding(
-                //             padding: EdgeInsets.symmetric(
-                //                 horizontal: w * 2.037, vertical: h * 0),
-                //             child: Icon(
-                //               Icons.payment,
-                //               color: Colors.white,
-                //             ),
-                //           ),
-                //           Padding(
-                //             padding: EdgeInsets.symmetric(
-                //                 horizontal: w * 2.037, vertical: h * 0),
-                //             child: Text(
-                //               "Payment",
-                //               textScaleFactor: 1,
-                //               textAlign: TextAlign.left,
-                //               style: TextStyle(
-                //                 fontFamily: "Nunito",
-                //                 fontWeight: FontWeight.w700,
-                //                 fontSize: w * 3.819,
-                //                 letterSpacing: 1,
-                //                 color: Colors.white,
-                //               ),
-                //             ),
-                //           )
-                //         ],
-                //       ),
-                //     ),
-                //   ),
-                //   onTap: () {},
-                // ),
-
                 GestureDetector(
                   child: ListTile(
                     title: Container(
@@ -280,80 +159,6 @@ class _MenuState extends State<Menu> {
                         MaterialPageRoute(builder: (ctx) => CalendarScreen()));
                   },
                 ),
-                // GestureDetector(
-                //   child: ListTile(
-                //     title: Container(
-                //       alignment: Alignment.center,
-                //       height: h * 4.2217,
-                //       child: Row(
-                //         children: <Widget>[
-                //           Padding(
-                //             padding: EdgeInsets.symmetric(
-                //                 horizontal: w * 2.037, vertical: h * 0),
-                //             child: Icon(
-                //               Icons.group,
-                //               color: Colors.white,
-                //             ),
-                //           ),
-                //           Padding(
-                //             padding: EdgeInsets.symmetric(
-                //                 horizontal: w * 2.037, vertical: h * 0),
-                //             child: Text(
-                //               "Meeters",
-                //               textScaleFactor: 1,
-                //               textAlign: TextAlign.left,
-                //               style: TextStyle(
-                //                 fontFamily: "Nunito",
-                //                 fontWeight: FontWeight.w700,
-                //                 fontSize: w * 3.819,
-                //                 letterSpacing: 1,
-                //                 color: Colors.white,
-                //               ),
-                //             ),
-                //           )
-                //         ],
-                //       ),
-                //     ),
-                //   ),
-                //   onTap: () {},
-                // ),
-                // GestureDetector(
-                //   child: ListTile(
-                //     title: Container(
-                //       alignment: Alignment.center,
-                //       height: h * 4.2217,
-                //       child: Row(
-                //         children: <Widget>[
-                //           Padding(
-                //             padding: EdgeInsets.symmetric(
-                //                 horizontal: w * 2.037, vertical: h * 0),
-                //             child: Icon(
-                //               Icons.pin_drop,
-                //               color: Colors.white,
-                //             ),
-                //           ),
-                //           Padding(
-                //             padding: EdgeInsets.symmetric(
-                //                 horizontal: w * 2.037, vertical: h * 0),
-                //             child: Text(
-                //               "Locations",
-                //               textScaleFactor: 1,
-                //               textAlign: TextAlign.left,
-                //               style: TextStyle(
-                //                 fontFamily: "Nunito",
-                //                 fontWeight: FontWeight.w700,
-                //                 fontSize: w * 3.819,
-                //                 letterSpacing: 1,
-                //                 color: Colors.white,
-                //               ),
-                //             ),
-                //           )
-                //         ],
-                //       ),
-                //     ),
-                //   ),
-                //   onTap: () {},
-                // ),
                 GestureDetector(
                   child: ListTile(
                     title: Container(
@@ -389,9 +194,10 @@ class _MenuState extends State<Menu> {
                       ),
                     ),
                   ),
-                  onTap: () {
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(builder: (ctx) => Login()));
+                  onTap: () async {
+                    await FirebaseAuth.instance.signOut();
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) => AuthMain()));
                   },
                 ),
               ],
@@ -399,16 +205,16 @@ class _MenuState extends State<Menu> {
             SizedBox(
               height: h * 2.8,
             ),
-            Row(
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(
-                      bottom: h * 2.6, left: w * 5.8, right: w * 5.8),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (ctx) => ProfilePreview()));
-                    },
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (ctx) => ProfilePreview()));
+              },
+              child: Row(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(
+                        bottom: h * 2.6, left: w * 5.8, right: w * 5.8),
                     child: Container(
                       width: w * 19.5,
                       height: h * 8.9,
@@ -416,7 +222,7 @@ class _MenuState extends State<Menu> {
                         color: Colors.grey[300],
                         shape: BoxShape.circle,
                       ),
-                      child: user.avatarUrl != null
+                      child: user != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(50),
                               child: Image.network(
@@ -426,24 +232,42 @@ class _MenuState extends State<Menu> {
                           : Container(),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user.displayName,
-                        style: TextStyle(
-                          fontSize: w * 5.3,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                  user != null
+                      ? Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.displayName,
+                                style: TextStyle(
+                                  fontSize: w * 5.3,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : Container(),
+                ],
+              ),
             ),
+            SizedBox(
+              height: h * 3.8,
+            ),
+            /* MaterialButton(
+                minWidth: 250,
+                height: 50,
+                color: Colors.white,
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (ctx) => EditProfileSetup()));
+                },
+                child: Text(
+                  "Edit Profile",
+                  style: TextStyle(
+                      color: Colors.blue, fontWeight: FontWeight.bold),
+                ))*/
           ],
         ),
       ),

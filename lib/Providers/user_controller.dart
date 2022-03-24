@@ -19,7 +19,7 @@ class UserController with ChangeNotifier {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
 
-  Future<bool> registerUser(String email, String password) async {
+  /*Future<bool> registerUser(String email, String password) async {
     bool retVal = false;
     OurUser _user = OurUser();
     try {
@@ -56,10 +56,10 @@ class UserController with ChangeNotifier {
     }
     notifyListeners();
     return retVal;
-  }
+  }*/
 
   //Gets credentials from UI and passes onto the Db service to login
-  Future<bool> loginUser(String email, String password) async {
+  /* Future<bool> loginUser(String email, String password) async {
     bool response = false;
     try {
       UserCredential _authResult = await auth.signInWithEmailAndPassword(
@@ -97,9 +97,9 @@ class UserController with ChangeNotifier {
     }
     notifyListeners();
     return response;
-  }
+  }*/
 
-  Future<bool> signOut() async {
+  /*Future<bool> signOut() async {
     bool retVal = false;
     try {
       await auth.signOut();
@@ -111,9 +111,9 @@ class UserController with ChangeNotifier {
     }
     notifyListeners();
     return retVal;
-  }
+  }*/
 
-  setToken(OurUser user) async {
+  /*setToken(OurUser user) async {
     String fcmToken = await firebaseMessaging.getToken();
     try {
       await _firestore.collection("users").doc(user.uid).update({
@@ -122,18 +122,15 @@ class UserController with ChangeNotifier {
     } catch (e) {
       print(e);
     }
-  }
+  }*/
 
   Future<bool> updateDisplay(String name) async {
     try {
-      print("The name to update is : $name");
-      print(auth.currentUser.uid);
       await _firestore
           .collection("users")
           .doc(auth.currentUser.uid)
           .update({"displayName": name});
     } catch (e) {
-      print(e);
       return false;
     }
     return true;
@@ -145,52 +142,48 @@ class UserController with ChangeNotifier {
   String postId = Uuid().v4();
 
   Future<bool> updateAvatar(String uid) async {
-    Future<String> uploadImage(imageFile, String uid) async {
+    Future<String> uploadImage(File imageFile, String uid) async {
       String downloadUrl;
-      UploadTask uploadTask = FirebaseStorage.instance
-          .ref()
-          .child("profilePictures/$uid.jpg")
-          .putFile(imageFile);
+      Reference reference =
+          FirebaseStorage.instance.ref().child("profilePictures/$uid.jpg");
+      UploadTask uploadTask = reference.putData(imageFile.readAsBytesSync());
+
       await uploadTask.whenComplete(() async {
-        print("about to aquire");
         downloadUrl = await uploadTask.snapshot.ref.getDownloadURL();
       });
-      print("after aquire");
+
       return downloadUrl;
     }
 
     updatePostInFirestore({String mediaUrl, String uid}) async {
-      print("THE POST ID IS $postId");
-      print(uid);
       await FirebaseFirestore.instance.collection("users").doc(uid).update({
         "avatarUrl": mediaUrl,
       });
       await getCurrentUserInfo();
     }
 
-    compressImage() async {
+    /*compressImage() async {
       final tempDir = await getTemporaryDirectory();
       final path = tempDir.path;
       Im.Image imageFile = Im.decodeImage(file.readAsBytesSync());
       final compressedImageFile = File("$path/img_$postId.jpg")
-        ..writeAsBytesSync(Im.encodeJpg(imageFile, quality: 90));
+        ..writeAsBytesSync(Im.encodeJpg(imageFile, quality: 25));
       file = compressedImageFile;
-    }
+    }*/
 
     uploadToStorage(String uid) async {
-      isUploading = true;
-      await compressImage();
-      print("here 1");
+      //isUploading = true;
+      //await compressImage();
       String mediaUrl = await uploadImage(file, uid);
       await updatePostInFirestore(mediaUrl: mediaUrl, uid: uid);
-      isUploading = false;
-      postId = Uuid().v4();
+      //isUploading = false;
+      //postId = Uuid().v4();
     }
 
     handleChooseFromGallery(String uid) async {
-      var getImage = await img.getImage(source: ImageSource.gallery);
+      var getImage =
+          await img.getImage(source: ImageSource.gallery, imageQuality: 25);
       File file = File(getImage.path);
-
       this.file = file;
       if (file != null) {
         await uploadToStorage(uid);
@@ -203,22 +196,18 @@ class UserController with ChangeNotifier {
   }
 
   Future<bool> updateBanner(String uid, String collection) async {
-    Future<String> uploadImage(imageFile, String uid) async {
+    Future<String> uploadImage(File imageFile, String uid) async {
       String downloadUrl;
-      UploadTask uploadTask = FirebaseStorage.instance
-          .ref()
-          .child("profileBanners/$uid.jpg")
-          .putFile(imageFile);
+      Reference reference =
+          FirebaseStorage.instance.ref().child("profileBanners/$uid.jpg");
+      UploadTask uploadTask = reference.putData(imageFile.readAsBytesSync());
       await uploadTask.whenComplete(() async {
-        print("about to aquire");
         downloadUrl = await uploadTask.snapshot.ref.getDownloadURL();
       });
-      print("after aquire");
       return downloadUrl;
     }
 
     updatePostInFirestore({String mediaUrl, String uid}) async {
-      print("THE POST ID IS $postId");
       print(uid);
       await FirebaseFirestore.instance.collection(collection).doc(uid).update({
         "bannerImage": mediaUrl,
@@ -226,30 +215,31 @@ class UserController with ChangeNotifier {
       await getCurrentUserInfo();
     }
 
-    compressImage() async {
+    /* compressImage() async {
       final tempDir = await getTemporaryDirectory();
       final path = tempDir.path;
       Im.Image imageFile = Im.decodeImage(file.readAsBytesSync());
       final compressedImageFile = File("$path/img_$postId.jpg")
-        ..writeAsBytesSync(Im.encodeJpg(imageFile, quality: 90));
+        ..writeAsBytesSync(Im.encodeJpg(imageFile, quality: 25));
       file = compressedImageFile;
-    }
+    }*/
 
     uploadToStorage(String uid) async {
-      isUploading = true;
-      await compressImage();
-      print("here 1");
+      //isUploading = true;
+      //await compressImage();
       String mediaUrl = await uploadImage(file, uid);
       await updatePostInFirestore(mediaUrl: mediaUrl, uid: uid);
-      isUploading = false;
-      postId = Uuid().v4();
+      //isUploading = false;
+      //postId = Uuid().v4();
     }
 
     handleChooseFromGallery(String uid) async {
       var getImage = await img.getImage(
-          source: ImageSource.gallery, maxWidth: 1920, maxHeight: 1080);
+          source: ImageSource.gallery,
+          maxWidth: 1920,
+          maxHeight: 1080,
+          imageQuality: 25);
       File file = File(getImage.path);
-
       this.file = file;
       if (file != null) {
         await uploadToStorage(uid);
@@ -261,7 +251,7 @@ class UserController with ChangeNotifier {
     return true;
   }
 
-  Future<String> uploadPicture() async {
+  /* Future<String> uploadPicture() async {
     String uploadLink;
     Future<String> uploadImage(imageFile) async {
       String downloadUrl;
@@ -313,9 +303,9 @@ class UserController with ChangeNotifier {
     print(uploadLink);
 
     return uploadLink;
-  }
+  }*/
 
-  Future<bool> updateUsername(String username) async {
+  /*Future<bool> updateUsername(String username) async {
     try {
       await _firestore
           .collection("users")
@@ -326,7 +316,7 @@ class UserController with ChangeNotifier {
       return false;
     }
     return true;
-  }
+  }*/
 
   Future<bool> updateBio(String bio) async {
     try {
@@ -335,7 +325,6 @@ class UserController with ChangeNotifier {
           .doc(_currentUser.uid)
           .update({"bio": bio});
     } catch (e) {
-      print(e);
       return false;
     }
     return true;
@@ -348,7 +337,6 @@ class UserController with ChangeNotifier {
           .doc(auth.currentUser.uid)
           .update({"occupation": occupation});
     } catch (e) {
-      print(e);
       return false;
     }
     return true;
@@ -361,13 +349,12 @@ class UserController with ChangeNotifier {
           .doc(auth.currentUser.uid)
           .update({"age": age});
     } catch (e) {
-      print(e);
       return false;
     }
     return true;
   }
 
-  Future<bool> updateType(String type) async {
+  /*Future<bool> updateType(String type) async {
     try {
       await _firestore
           .collection("users")
@@ -378,9 +365,9 @@ class UserController with ChangeNotifier {
       return false;
     }
     return true;
-  }
+  }*/
 
-  Future<bool> updateInterestedIn(String gender) async {
+  /*Future<bool> updateInterestedIn(String gender) async {
     try {
       await _firestore
           .collection("users")
@@ -391,7 +378,7 @@ class UserController with ChangeNotifier {
       return false;
     }
     return true;
-  }
+  }*/
 
   Future<bool> updateCountry(String country) async {
     try {
@@ -400,24 +387,22 @@ class UserController with ChangeNotifier {
           .doc(_currentUser.uid)
           .update({"country": country});
     } catch (e) {
-      print(e);
       return false;
     }
     return true;
   }
 
-  Future<bool> updatePushNotifications(bool push) async {
+  /*Future<bool> updatePushNotifications(bool push) async {
     try {
       await _firestore
           .collection("users")
           .doc(_currentUser.uid)
           .update({"pushNotifications": push});
     } catch (e) {
-      print(e);
       return false;
     }
     return true;
-  }
+  }*/
 
   Future<OurUser> getCurrentUserInfo() async {
     try {
@@ -443,9 +428,7 @@ class UserController with ChangeNotifier {
         _currentUser.bannerImage = snapshotData["bannerImage"];
         _currentUser.occupation = snapshotData["occupation"];
         print(_currentUser.isSelling);
-
         notifyListeners();
-
         return _currentUser;
       } else {
         return _currentUser;

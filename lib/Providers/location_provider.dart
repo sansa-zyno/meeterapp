@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:meeter/Services/geolocator_service.dart';
 
@@ -11,4 +11,4 @@ class LocationProvider with ChangeNotifier {
     _position = await geoLocatorService.getLocation();
     notifyListeners();
   }
-}
+}*/

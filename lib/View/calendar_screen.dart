@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:meeter/Widgets/MeeterAppBar/meeterAppBar.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CalendarScreen extends StatefulWidget {
   @override
@@ -10,6 +12,46 @@ class CalendarScreen extends StatefulWidget {
 List<Meeting> meetings;
 
 class _CalendarScreenState extends State<CalendarScreen> {
+  List<QueryDocumentSnapshot> requests = [];
+
+  getRequest() {
+    String userId = FirebaseAuth.instance.currentUser.uid;
+    String docId;
+    FirebaseFirestore.instance
+        .collection('requests')
+        .snapshots()
+        .listen((event) {
+      List<String> uids = [];
+      for (int i = 0; i < event.docs.length; i++) {
+        uids.add(event.docs[i].id);
+      }
+      print(" hassan uids $docId");
+      for (int i = 0; i < uids.length; i++) {
+        FirebaseFirestore.instance
+            .collection('requests')
+            .doc(uids[i])
+            .collection('request')
+            .where('accepted', isEqualTo: true)
+            .where('meeters', arrayContains: userId)
+            .snapshots()
+            .listen((event) {
+          for (int i = 0; i < event.docs.length; i++) {
+            requests.add(event.docs[i]);
+            setState(() {});
+          }
+        });
+      }
+      print("hassan requests ${requests.length.toString()}");
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getRequest();
+  }
+
   @override
   Widget build(BuildContext context) {
     var w = MediaQuery.of(context).size.width / 100;
@@ -24,13 +66,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
             child: Column(
               children: [
                 SizedBox(
-                  height: h*16.8,
+                  height: h * 16.8,
                 ),
                 Container(
-                  height: h*56.1,
+                  height: h * 56.1,
                   child: SfCalendar(
                     view: CalendarView.month,
-                    dataSource: MeetingDataSource(_getDataSource()),
+                    dataSource: MeetingDataSource(_getDataSource(requests)),
                     cellBorderColor: Colors.white,
                     headerHeight: 50,
                     onTap: (CalendarTapDetails details) {
@@ -68,16 +110,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 }
 
-List<Meeting> _getDataSource() {
+List<Meeting> _getDataSource(List<QueryDocumentSnapshot> requests) {
   meetings = <Meeting>[];
-  final DateTime today = DateTime.now();
-  final DateTime startTime =
-      DateTime(today.year, today.month, today.day, 9, 0, 0);
-  final DateTime endTime = startTime.add(const Duration(hours: 2));
-  meetings.add(Meeting(
-      'Available From', startTime, endTime, const Color(0xFF0F8644), false));
-  meetings.add(Meeting(
-      'Available From', startTime, endTime, const Color(0xFF00AEFF), false));
+  for (int i = 0; i < requests.length; i++) {
+    final DateTime startTime = DateTime(
+        DateTime.parse(requests[i]['date']).year,
+        DateTime.parse(requests[i]['date']).month,
+        DateTime.parse(requests[i]['date']).day,
+        requests[i]['startTime']['hour'],
+        requests[i]['startTime']['min'],
+        0);
+    final DateTime endTime =
+        startTime.add(Duration(minutes: requests[i]['duration']));
+    meetings.add(Meeting(requests[i]['title'], startTime, endTime,
+        const Color(0xFF0F8644), false));
+  }
   return meetings;
 }
 

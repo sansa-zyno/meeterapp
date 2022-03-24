@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:circular_profile_avatar/circular_profile_avatar.dart';
 import 'package:meeter/Widgets/TextWidgets/poppins_text.dart';
 import 'package:readmore/readmore.dart';
@@ -631,4 +631,4 @@ class Meeting {
 
   /// IsAllDay which is equivalent to isAllDay property of [Appointment].
   bool isAllDay;
-}
+}*/

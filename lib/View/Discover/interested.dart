@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meeter/Widgets/TextWidgets/poppins_text.dart';
 import 'package:meeter/Widgets/GradientButton/GradientButton.dart';
-import "package:cloud_firestore/cloud_firestore.dart";
 import 'package:page_transition/page_transition.dart';
 import './interested_sellers.dart';
 

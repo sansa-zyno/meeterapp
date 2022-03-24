@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:meeter/View/Explore_Buyer/search_buyer_screen.dart';
 import 'package:meeter/Widgets/GradientButton/GradientButton.dart';
-import 'package:meeter/Widgets/HWidgets/searh_list.dart';
+import 'package:meeter/Widgets/HWidgets/search_list.dart';
 import 'package:meeter/Widgets/HWidgets/menu.dart';
-import 'package:meeter/View/Dashboard/activity_buyer.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:meeter/Model/demand_data.dart';
 
 class BuyerSearchResultScreen extends StatefulWidget {
-  final List<DocumentSnapshot> ldoc;
+  final List<DemandData> ldoc;
   BuyerSearchResultScreen({this.ldoc});
   @override
   _BuyerSearchResultScreenState createState() =>
@@ -14,17 +14,15 @@ class BuyerSearchResultScreen extends StatefulWidget {
 }
 
 class _BuyerSearchResultScreenState extends State<BuyerSearchResultScreen> {
-  TextEditingController searchController = TextEditingController();
+  //TextEditingController searchController = TextEditingController();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  List<DocumentSnapshot> searchCollection = [];
+  //List<DocumentSnapshot> searchCollection = [];
   bool search = false;
   int i = 4;
   @override
   Widget build(BuildContext context) {
     var w = MediaQuery.of(context).size.width / 100;
-    print(w);
     var h = MediaQuery.of(context).size.height / 100;
-    print(h);
     return Scaffold(
       key: _scaffoldKey,
       drawer: Menu(
@@ -74,42 +72,6 @@ class _BuyerSearchResultScreenState extends State<BuyerSearchResultScreen> {
                               ),
                             ),
                           ),
-                          /* Container(
-                            alignment: Alignment.centerRight,
-                            child: Row(
-                              children: [
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              BuyerActivityScreen(),
-                                        ),
-                                      );
-                                    },
-                                    child: Container(
-                                      height: h * 5.6,
-                                      width: w * 12.1,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius:
-                                            BorderRadius.circular(50 / 2),
-                                      ),
-                                      child: Center(
-                                        child: Icon(
-                                          Icons.notifications_outlined,
-                                          color: Colors.green,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),*/
                         ],
                       ),
                       SizedBox(height: h * 10.1),
@@ -117,7 +79,7 @@ class _BuyerSearchResultScreenState extends State<BuyerSearchResultScreen> {
                         children: [
                           Expanded(
                             child: TextField(
-                              controller: searchController,
+                              // controller: searchController,
                               decoration: InputDecoration(
                                 filled: true,
                                 fillColor: Colors.white,
@@ -127,43 +89,15 @@ class _BuyerSearchResultScreenState extends State<BuyerSearchResultScreen> {
                                   ),
                                 ),
                                 hintText: 'Search',
-                                suffixIcon: IconButton(
-                                  onPressed: () async {
-                                    searchCollection = [];
-                                    QuerySnapshot docs = await FirebaseFirestore
-                                        .instance
-                                        .collection('meeters2')
-                                        .get();
-                                    List<String> uids = [];
-                                    for (int i = 0; i < docs.docs.length; i++) {
-                                      uids.add(docs.docs[i].id);
-                                    }
-
-                                    for (int i = 0; i < uids.length; i++) {
-                                      QuerySnapshot docs =
-                                          await FirebaseFirestore.instance
-                                              .collection('meeters2')
-                                              .doc(uids[i])
-                                              .collection('meeter2')
-                                              .where('demand_tags',
-                                                  arrayContains:
-                                                      searchController.text)
-                                              .get();
-                                      for (int i = 0;
-                                          i < docs.docs.length;
-                                          i++) {
-                                        searchCollection.add(docs.docs[i]);
-                                        search = true;
-                                        setState(() {});
-                                      }
-                                    }
-                                  },
-                                  icon: Icon(
-                                    Icons.search_rounded,
-                                    color: Colors.green,
-                                  ),
-                                ),
                               ),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SearchBuyerScreen(),
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -175,9 +109,7 @@ class _BuyerSearchResultScreenState extends State<BuyerSearchResultScreen> {
               SizedBox(height: h * 1.1),
               SearchList(
                 clr: Colors.green,
-                ldoc: search
-                    ? searchCollection.take(i).toList()
-                    : widget.ldoc.take(i).toList(),
+                ldoc: widget.ldoc.take(i).toList(),
               ),
               SizedBox(height: h * 1.1),
               Container(

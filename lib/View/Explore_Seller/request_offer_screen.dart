@@ -1,18 +1,21 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_picker_timeline/date_picker_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:meeter/Controller/user_controller.dart';
+import 'package:meeter/Providers/user_controller.dart';
+import 'package:meeter/Model/meetup_data.dart';
+import 'package:meeter/Model/place.dart';
 import 'package:meeter/Model/user.dart';
-import 'package:meeter/Providers/location_provider.dart';
 import 'package:meeter/Widgets/GradientButton/GradientButton.dart';
 import 'package:meeter/Widgets/HWidgets/offer_appbar.dart';
+import 'package:meeter/Providers/application_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:achievement_view/achievement_view.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class RequestOffer extends StatefulWidget {
-  final DocumentSnapshot doc;
+  final MeetupData doc;
   final OurUser sellerDetails;
   RequestOffer({this.doc, this.sellerDetails});
   @override
@@ -21,36 +24,61 @@ class RequestOffer extends StatefulWidget {
 
 class _RequestOfferState extends State<RequestOffer> {
   UserController _currentUser;
-  //LocationProvider userLoc;
+  Completer<GoogleMapController> _mapController = Completer();
+  StreamSubscription locationSubscription;
+  final _locationController = TextEditingController();
+  final _scacffoldKey = GlobalKey<ScaffoldState>();
+
   TextEditingController questionController = TextEditingController();
   DatePickerController datePickerController = DatePickerController();
-  //Completer<GoogleMapController> _mapController = Completer();
   DateTime date = DateTime.now();
   int _value = 1;
-  bool isButtonPressed1 = false;
-  bool isButtonPressed2 = false;
-  String time;
-  List<String> _time = [
-    '10:00 - 11:00 AM',
-    '11:00 - 12:00 PM',
-    '12:00 - 1:00 PM',
-    '1:00 - 2:00 PM',
-    '2:00 - 3:00 PM',
-    '3:00 - 4:00 PM'
-  ];
+  String duration;
+  List<String> _duration = ['30', '40', '50', '60', '70', '80', '90'];
 
-  /*TimeOfDay _time = TimeOfDay(hour: 7, minute: 15);
-  void _selectTime() async {
+  bool isButtonPressed = false;
+  int idx = 0;
+
+  TimeOfDay _startTime = TimeOfDay(hour: 12, minute: 00);
+
+  void _selectTime(ctx) async {
     final TimeOfDay newTime = await showTimePicker(
-      context: context,
-      initialTime: _time,
+      context: ctx,
+      initialTime: _startTime,
     );
     if (newTime != null) {
       setState(() {
-        _time = newTime;
+        _startTime = newTime;
       });
     }
-  }*/
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    final applicationBloc =
+        Provider.of<ApplicationBloc>(context, listen: false);
+    locationSubscription =
+        applicationBloc.selectedLocation.stream.listen((place) {
+      if (place != null) {
+        _locationController.text = place.name;
+        _goToPlace(place);
+      } else
+        _locationController.text = "";
+    });
+  }
+
+  @override
+  void dispose() {
+    final applicationBloc =
+        Provider.of<ApplicationBloc>(context, listen: false);
+    locationSubscription.cancel();
+    applicationBloc.dispose();
+    _locationController.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,8 +87,9 @@ class _RequestOfferState extends State<RequestOffer> {
     var h = MediaQuery.of(context).size.height / 100;
     print(h);
     _currentUser = Provider.of<UserController>(context);
-    //userLoc = Provider.of<LocationProvider>(context);
+    final applicationBloc = Provider.of<ApplicationBloc>(context);
     return Scaffold(
+      key: _scacffoldKey,
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -150,7 +179,7 @@ class _RequestOfferState extends State<RequestOffer> {
                               fontWeight: FontWeight.w700),
                         ),
                       ),
-                      Padding(
+                      /* Padding(
                         padding: EdgeInsets.symmetric(
                           horizontal: w * 3.6,
                         ),
@@ -161,71 +190,73 @@ class _RequestOfferState extends State<RequestOffer> {
                             fontSize: w * 4.3,
                           ),
                         ),
+                      ),*/
+
+                      Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: w * 3.6,
+                          ),
+                          child: Row(
+                            children: [
+                              MaterialButton(
+                                color: Colors.grey[200],
+                                child: Text("Select time"),
+                                onPressed: () {
+                                  _selectTime(context);
+                                },
+                              ),
+                              SizedBox(
+                                width: 15,
+                              ),
+                              Text(
+                                "${_startTime.hour == 0 ? 12 : _startTime.hour <= 12 ? _startTime.hour : _startTime.hour - 12} : ${_startTime.minute.floor() < 10 ? "0" : ""}${_startTime.minute.floor()} ${_startTime.period.index == 0 ? "AM" : "PM"}",
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              )
+                            ],
+                          )),
+                      SizedBox(
+                        height: 15,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: w * 3.6),
+                        child: Text(
+                          'Choose Duration',
+                          style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: w * 6.0,
+                              fontWeight: FontWeight.w700),
+                        ),
                       ),
                       SizedBox(
-                        height: h * 16,
+                        height: h * 13,
                         child: ListView.builder(
                           shrinkWrap: true,
-                          itemCount: _time.length,
+                          itemCount: _duration.length,
                           scrollDirection: Axis.horizontal,
                           itemBuilder: (context, index) {
                             return Padding(
                               padding: EdgeInsets.symmetric(
                                 horizontal: w * 3.6,
-                                vertical: h * 2.2,
+                                vertical: h * 2.5,
                               ),
-                              child: Column(
-                                children: [
-                                  index % 2 == 0
-                                      ? Expanded(
-                                          child: Padding(
-                                            padding: EdgeInsets.only(
-                                                bottom: h * 2.2),
-                                            child: RaisedButton(
-                                              color: isButtonPressed1
-                                                  ? Colors.blue[400]
-                                                  : Colors.grey[200],
-                                              child: Text(
-                                                _time[index],
-                                                style: TextStyle(
-                                                  fontSize: w * 4.3,
-                                                ),
-                                              ),
-                                              onPressed: () {
-                                                setState(() {
-                                                  time = _time[index];
-                                                  isButtonPressed1 =
-                                                      !isButtonPressed1;
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                        )
-                                      : Expanded(
-                                          child: Padding(
-                                            padding: EdgeInsets.only(
-                                                bottom: h * 2.2),
-                                            child: RaisedButton(
-                                              color: isButtonPressed2
-                                                  ? Colors.blue[400]
-                                                  : Colors.grey[200],
-                                              child: Text(
-                                                _time[index],
-                                                style: TextStyle(
-                                                  fontSize: w * 4.3,
-                                                ),
-                                              ),
-                                              onPressed: () {
-                                                time = _time[index];
-                                                setState(() {
-                                                  isButtonPressed2 =
-                                                      !isButtonPressed2;
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                ],
+                              child: RaisedButton(
+                                color: isButtonPressed && idx == index
+                                    ? Colors.blue[400]
+                                    : Colors.grey[200],
+                                child: Text(
+                                  _duration[index] + "min",
+                                  style: TextStyle(
+                                    fontSize: w * 4.3,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  duration = _duration[index];
+                                  setState(() {
+                                    isButtonPressed = !isButtonPressed;
+                                    idx = index;
+                                  });
+                                },
                               ),
                             );
                           },
@@ -275,67 +306,103 @@ class _RequestOfferState extends State<RequestOffer> {
                 ),
                 SizedBox(height: h * 2.2),
                 _value == 1
-                    ? Container(
-                        width: w * 80.4,
-                        // height: h * 6.7,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(
-                            color: Colors.blue,
-                            width: w * 0.04,
-                          ),
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(20),
-                          ),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: h * 2.4,
-                            horizontal: w * 1.1,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.location_on,
+                    ? Column(
+                        children: [
+                          Container(
+                            /*width: w * 80.4,
+                            // height: h * 6.7,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(
                                 color: Colors.blue,
-                                size: w * 7.3,
+                                width: w * 0.04,
                               ),
-                              Text(
-                                'Pin Location',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: w * 4.8,
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(20),
+                              ),
+                            ),*/
+                            child: TextField(
+                              controller: _locationController,
+                              textCapitalization: TextCapitalization.words,
+                              decoration: InputDecoration(
+                                hintText: 'Pin a Location',
+                                prefixIcon: Icon(
+                                  Icons.location_on,
+                                  color: Colors.blue,
+                                ),
+                                suffixIcon: Icon(
+                                  Icons.search,
+                                  color: Colors.blue,
                                 ),
                               ),
+                              onChanged: (value) =>
+                                  applicationBloc.searchPlaces(value),
+                              onTap: () =>
+                                  applicationBloc.clearSelectedLocation(),
+                            ),
+                          ),
+                          Stack(
+                            children: [
+                              Container(
+                                  height: 300.0,
+                                  child: GoogleMap(
+                                    mapType: MapType.normal,
+                                    myLocationEnabled: true,
+                                    initialCameraPosition: CameraPosition(
+                                      target: applicationBloc.currentLocation !=
+                                              null
+                                          ? LatLng(
+                                              applicationBloc
+                                                  .currentLocation.latitude,
+                                              applicationBloc
+                                                  .currentLocation.longitude)
+                                          : LatLng(0, 0),
+                                      zoom: 14,
+                                    ),
+                                    onMapCreated:
+                                        (GoogleMapController controller) {
+                                      _mapController.complete(controller);
+                                    },
+                                  )),
+                              if (applicationBloc.searchResults != null &&
+                                  applicationBloc.searchResults.length != 0)
+                                Container(
+                                    height: 300.0,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(.6),
+                                        backgroundBlendMode: BlendMode.darken)),
+                              if (applicationBloc.searchResults != null)
+                                Container(
+                                  height: 300.0,
+                                  child: ListView.builder(
+                                      itemCount:
+                                          applicationBloc.searchResults.length,
+                                      itemBuilder: (context, index) {
+                                        return ListTile(
+                                          title: Text(
+                                            applicationBloc.searchResults[index]
+                                                .description,
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
+                                          onTap: () {
+                                            applicationBloc.setSelectedLocation(
+                                                applicationBloc
+                                                    .searchResults[index]
+                                                    .placeId);
+                                          },
+                                        );
+                                      }),
+                                ),
                             ],
                           ),
-                        ),
+                        ],
                       )
-                    : Container(),
-                SizedBox(height: h * 2.2),
-                _value == 1
-                    ? Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(20),
-                          ),
-                        ),
-                        height: h * 14.6,
-                        width: w * 75.6,
-                        child: GoogleMap(
-                          //mapType: MapType.normal,
-                          //myLocationEnabled: true,
-                          initialCameraPosition: CameraPosition(
-                            target: LatLng(30.375321, 69.345116),
-                          ),
-                          /*onMapCreated: (GoogleMapController controller) {
-                            _mapController.complete(controller);
-                          },*/
-                        ))
                     : Container(),
                 SizedBox(height: 20),
                 Container(
-                  width: w * 50,
+                  width: w * 55,
                   height: 56,
                   child: GradientButton(
                     title: "Send Request",
@@ -345,37 +412,99 @@ class _RequestOfferState extends State<RequestOffer> {
                       Colors.blue,
                     ],
                     onpressed: () async {
-                      print(h * 100);
-                      print(w * 100);
-                      print(date);
-                      print(time);
-                      print(_value);
-                      print(questionController.text);
-
-                      await FirebaseFirestore.instance
-                          .collection('demands')
-                          .doc(widget.sellerDetails.uid)
-                          .set({"d": "d"});
-                      await FirebaseFirestore.instance
-                          .collection('demands')
-                          .doc(widget.sellerDetails.uid)
-                          .collection('demand')
-                          .add({
-                        "title": widget.doc['meetup_title'],
-                        "desc": widget.doc['meetup_description'],
-                        "question": questionController.text,
-                        "price": widget.doc['meetup_price'],
-                        "seller_location": widget.doc['meetup_location'],
-                        "seller_image": widget.doc['meetup_seller_image'],
-                        "date": "${date.year}-${date.month}-${date.day}",
-                        "time": time,
-                        "location": _value == 1 ? "Physical" : "Virtual",
-                        "buyer_name": _currentUser.getCurrentUser.displayName,
-                        "buyer_id": _currentUser.getCurrentUser.uid,
-                      });
+                      print(DateTime.now().hour);
+                      print(_startTime.hour);
+                      print(DateTime.now().minute);
+                      print(_startTime.minute);
+                      if (_startTime.hour == DateTime.now().hour &&
+                          _startTime.minute == DateTime.now().minute) {
+                        if (duration != null) {
+                          int totalMin = _startTime.hour < 12
+                              ? (_startTime.hour * 60 +
+                                  _startTime.minute +
+                                  int.parse(duration))
+                              : ((_startTime.hour - 12) * 60 +
+                                  _startTime.minute +
+                                  int.parse(duration));
+                          await FirebaseFirestore.instance
+                              .collection('requests')
+                              .doc(widget.sellerDetails.uid)
+                              .set({"r": "r"});
+                          await FirebaseFirestore.instance
+                              .collection('requests')
+                              .doc(widget.sellerDetails.uid)
+                              .collection('request')
+                              .add({
+                            "type": "service",
+                            "accepted": null,
+                            "modified": null,
+                            "acceptedBy": "",
+                            "modifiedBy": "",
+                            "declinedBy": "",
+                            "ts": Timestamp.now(),
+                            "title": widget.doc.meetup_title,
+                            "desc": widget.doc.meetup_description,
+                            "question": questionController.text,
+                            "price": widget.doc.meetup_price,
+                            "seller_location": widget.doc.meetup_location,
+                            "seller_image": widget.doc.meetup_seller_image,
+                            "seller_id": widget.doc.meetup_seller_uid,
+                            "seller_name": widget.doc.meetup_seller_name,
+                            "date":
+                                "${date.year}-${date.month.floor() < 10 ? "0" : ""}${date.month.floor()}-${date.day.floor() < 10 ? "0" : ""}${date.day.floor()}",
+                            "time":
+                                "${_startTime.hour == 0 ? 12 : _startTime.hour <= 12 ? _startTime.hour : _startTime.hour - 12}:${_startTime.minute.floor() < 10 ? "0" : ""}${_startTime.minute.floor()}${_startTime.period.index == 0 ? "AM" : "PM"} - ${totalMin ~/ 60 == 0 ? 12 : totalMin ~/ 60 <= 12 ? totalMin ~/ 60 : (totalMin ~/ 60) - 12}:${totalMin % 60}${_startTime.period.index == 0 ? totalMin ~/ 60 >= 12 ? "PM" : "AM" : totalMin ~/ 60 >= 12 ? "AM" : "PM"}",
+                            "duration": int.parse(duration),
+                            "startTime": {
+                              "hour": _startTime.hour,
+                              "min": _startTime.minute
+                            },
+                            "location": _value == 1 ? "Physical" : "Virtual",
+                            "buyer_name":
+                                _currentUser.getCurrentUser.displayName,
+                            "buyer_image":
+                                _currentUser.getCurrentUser.avatarUrl,
+                            "buyer_id": _currentUser.getCurrentUser.uid,
+                            "meeters": [
+                              widget.doc.meetup_seller_uid,
+                              _currentUser.getCurrentUser.uid
+                            ]
+                          });
+                          AchievementView(
+                            context,
+                            color: Colors.green,
+                            icon: Icon(
+                              FontAwesomeIcons.check,
+                              color: Colors.white,
+                            ),
+                            title: "Success!",
+                            elevation: 20,
+                            subTitle: "Request sent successfully",
+                            isCircle: true,
+                          )..show();
+                          Navigator.pop(context);
+                        } else {
+                          _scacffoldKey.currentState.showSnackBar(SnackBar(
+                            backgroundColor: Colors.red,
+                            content: Text(
+                              'Choose duration',
+                              textAlign: TextAlign.center,
+                            ),
+                          ));
+                        }
+                      } else {
+                        _scacffoldKey.currentState.showSnackBar(SnackBar(
+                          backgroundColor: Colors.red,
+                          content: Text(
+                            'Invalid time',
+                            textAlign: TextAlign.center,
+                          ),
+                        ));
+                      }
                     },
                   ),
                 ),
+                SizedBox(height: 20),
               ],
             ),
           ),
@@ -386,14 +515,26 @@ class _RequestOfferState extends State<RequestOffer> {
             name: widget.sellerDetails != null
                 ? widget.sellerDetails.displayName
                 : "",
-            work: widget.doc['meetup_title'],
-            price: widget.doc['meetup_price'].toString(),
+            work: widget.doc.meetup_title,
+            price: widget.doc.meetup_price.toString(),
             price1: '/30min',
             picture: widget.sellerDetails != null
                 ? widget.sellerDetails.avatarUrl
                 : "",
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _goToPlace(Place place) async {
+    final GoogleMapController controller = await _mapController.future;
+    controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+            target: LatLng(
+                place.geometry.location.lat, place.geometry.location.lng),
+            zoom: 14.0),
       ),
     );
   }

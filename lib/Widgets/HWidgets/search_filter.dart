@@ -1,26 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:chips_choice/chips_choice.dart';
+import 'package:meeter/Services/search_service.dart';
+import 'package:meeter/View/Explore_Buyer/buyer_search_result_screen.dart';
 import 'package:meeter/View/Explore_Seller/search_result_screen.dart';
 import 'package:meeter/Widgets/GradientButton/GradientButton.dart';
+import 'package:meeter/Providers/application_bloc.dart';
+import 'package:provider/provider.dart';
+import 'package:meeter/Model/meetup_data.dart';
+import 'package:meeter/Model/demand_data.dart';
 
 class SearchFilter extends StatefulWidget {
   final Color clr;
-  final searchText;
-  SearchFilter({this.clr, this.searchText});
+  SearchFilter({
+    this.clr,
+  });
   @override
   _SearchFilterState createState() => _SearchFilterState();
 }
 
 class _SearchFilterState extends State<SearchFilter> {
+  //final _scaffoldKey = GlobalKey<ScaffoldState>();
   RangeValues _currentRangeValues = RangeValues(0, 100);
   double minimum;
   double maximum;
 
-  int tag = 1;
-  int tag1 = 2;
+  int job;
+  int loc;
 
-  List<String> joboptions = [
+  List<String> jobOptions = [
     'Marketing',
     'Buisness',
     'Industry',
@@ -42,8 +50,9 @@ class _SearchFilterState extends State<SearchFilter> {
     print(w);
     var h = MediaQuery.of(context).size.height / 100;
     print(h);
-
+    ApplicationBloc _appBloc = Provider.of<ApplicationBloc>(context);
     return Container(
+      // height: MediaQuery.of(context).size.height,
       child: Column(
         children: [
           Column(
@@ -163,10 +172,10 @@ class _SearchFilterState extends State<SearchFilter> {
                             choiceStyle: C2ChoiceStyle(
                               color: widget.clr,
                             ),
-                            value: tag,
-                            onChanged: (val) => setState(() => tag = val),
+                            value: job,
+                            onChanged: (val) => setState(() => job = val),
                             choiceItems: C2Choice.listFrom<int, String>(
-                              source: joboptions,
+                              source: jobOptions,
                               value: (i, v) => i,
                               label: (i, v) => v,
                             ),
@@ -198,8 +207,8 @@ class _SearchFilterState extends State<SearchFilter> {
                             choiceStyle: C2ChoiceStyle(
                               color: widget.clr,
                             ),
-                            value: tag1,
-                            onChanged: (val) => setState(() => tag1 = val),
+                            value: loc,
+                            onChanged: (val) => setState(() => loc = val),
                             choiceItems: C2Choice.listFrom<int, String>(
                               source: locationoptions,
                               value: (i, v) => i,
@@ -230,56 +239,122 @@ class _SearchFilterState extends State<SearchFilter> {
                                 fontSize: w * 2.9,
                                 letterSpacing: 0,
                                 onpressed: () async {
+                                  List<DocumentSnapshot> searchCollection = [];
+                                  print(job);
+                                  //print(joboptions[job]);
                                   if (widget.clr == Colors.blue) {
-                                    List<DocumentSnapshot> searchCollection =
-                                        [];
-                                    QuerySnapshot docs = await FirebaseFirestore
-                                        .instance
-                                        .collection('meeters')
-                                        .get();
-                                    List<String> uids = [];
-                                    for (int i = 0; i < docs.docs.length; i++) {
-                                      uids.add(docs.docs[i].id);
-                                    }
+                                    if (_appBloc.searchController1.text != "") {
+                                      searchCollection = await Search().byTPCL(
+                                          _appBloc.searchController1.text,
+                                          jobOptions,
+                                          job,
+                                          _currentRangeValues.start,
+                                          _currentRangeValues.end,
+                                          loc);
+                                      List<MeetupData> col = searchCollection
+                                          .map(
+                                              (doc) => MeetupData.fromSnap(doc))
+                                          .toList();
+                                      col.isNotEmpty
+                                          ? Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    SearchResultScreen(
+                                                        ldoc: col),
+                                              ),
+                                            )
+                                          : Scaffold.of(context)
+                                              .showSnackBar(SnackBar(
+                                              content: Text(
+                                                  'There is no item that matches your search'),
+                                            ));
+                                    } else {
+                                      searchCollection = await Search().byPCL(
+                                          jobOptions,
+                                          job,
+                                          _currentRangeValues.start,
+                                          _currentRangeValues.end,
+                                          loc);
 
-                                    for (int i = 0; i < uids.length; i++) {
-                                      QuerySnapshot docs =
-                                          await FirebaseFirestore.instance
-                                              .collection('meeters')
-                                              .doc(uids[i])
-                                              .collection('meeter')
-                                              .where('meetup_tags',
-                                                  arrayContains:
-                                                      widget.searchText)
-                                              .where("meetup_price",
-                                                  isGreaterThanOrEqualTo:
-                                                      _currentRangeValues.start)
-                                              .where("meetup_price",
-                                                  isLessThanOrEqualTo:
-                                                      _currentRangeValues.end)
-                                              .where('meetup_available_online',
-                                                  isEqualTo:
-                                                      tag1 == 1 ? true : false)
-                                              .get();
-                                      for (int i = 0;
-                                          i < docs.docs.length;
-                                          i++) {
-                                        searchCollection.add(docs.docs[i]);
-                                        setState(() {});
-                                      }
-                                    }
+                                      List<MeetupData> col = searchCollection
+                                          .map(
+                                              (doc) => MeetupData.fromSnap(doc))
+                                          .toList();
 
-                                    searchCollection.isNotEmpty
-                                        ? Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  SearchResultScreen(
-                                                      ldoc: searchCollection),
-                                            ),
-                                          )
-                                        : {};
-                                  } else {}
+                                      col.isNotEmpty
+                                          ? Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    SearchResultScreen(
+                                                        ldoc: col),
+                                              ),
+                                            )
+                                          : Scaffold.of(context)
+                                              .showSnackBar(SnackBar(
+                                              content: Text(
+                                                  'There is no item that matches your search'),
+                                            ));
+                                    }
+                                  } else {
+                                    if (_appBloc.searchController2.text != "") {
+                                      searchCollection = await Search().byTPCL2(
+                                          _appBloc.searchController2.text,
+                                          jobOptions,
+                                          job,
+                                          _currentRangeValues.start,
+                                          _currentRangeValues.end,
+                                          loc);
+
+                                      List<DemandData> col = searchCollection
+                                          .map(
+                                              (doc) => DemandData.fromSnap(doc))
+                                          .toList();
+
+                                      col.isNotEmpty
+                                          ? Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    BuyerSearchResultScreen(
+                                                        ldoc: col),
+                                              ),
+                                            )
+                                          : Scaffold.of(context)
+                                              .showSnackBar(SnackBar(
+                                              content: Text(
+                                                  'There is no item that matches your search'),
+                                            ));
+                                    } else {
+                                      searchCollection = await Search().byPCL2(
+                                          jobOptions,
+                                          job,
+                                          _currentRangeValues.start,
+                                          _currentRangeValues.end,
+                                          loc);
+
+                                      List<DemandData> col = searchCollection
+                                          .map(
+                                              (doc) => DemandData.fromSnap(doc))
+                                          .toList();
+
+                                      col.isNotEmpty
+                                          ? Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    BuyerSearchResultScreen(
+                                                        ldoc: col),
+                                              ),
+                                            )
+                                          : Scaffold.of(context)
+                                              .showSnackBar(SnackBar(
+                                              content: Text(
+                                                  'There is no item that matches your search'),
+                                            ));
+                                    }
+                                  }
                                 },
                               ),
                             ),
@@ -301,8 +376,8 @@ class _SearchFilterState extends State<SearchFilter> {
                                 onpressed: () {
                                   setState(() {
                                     _currentRangeValues = RangeValues(0, 100);
-                                    tag = null;
-                                    tag1 = null;
+                                    job = null;
+                                    loc = null;
                                   });
                                 },
                               ),

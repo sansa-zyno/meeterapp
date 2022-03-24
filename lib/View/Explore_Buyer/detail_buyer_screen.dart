@@ -1,36 +1,41 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:meeter/Controller/user_controller.dart';
+import 'package:meeter/Model/demand_data.dart';
+import 'package:meeter/providers/user_controller.dart';
 import 'package:meeter/Model/user.dart';
 import 'package:meeter/Widgets/HWidgets/detail_data.dart';
 import 'package:meeter/Widgets/HWidgets/detail_appbar_buyer.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DetailsBuyerScreen extends StatefulWidget {
-  final DocumentSnapshot meeter2;
-  DetailsBuyerScreen(this.meeter2);
+  final DemandData demands;
+  DetailsBuyerScreen(this.demands);
   @override
   _DetailsBuyerScreenState createState() => _DetailsBuyerScreenState();
 }
 
 class _DetailsBuyerScreenState extends State<DetailsBuyerScreen> {
-  OurUser personDetails;
+  OurUser demandPerson;
   int likes;
+  FirebaseAuth _auth;
 
   onLoad() async {
     UserController user = UserController();
-    print(widget.meeter2.id);
-    personDetails = await user.getUserInfo(widget.meeter2['demand_person_uid']);
-    print(personDetails.uid);
+    print(widget.demands.demand_id);
+    demandPerson = await user.getUserInfo(widget.demands.demand_person_uid);
+    print(demandPerson.uid);
     FirebaseFirestore.instance
-        .collection('meeters2')
-        .doc(personDetails.uid)
-        .collection('meeter2')
-        .doc(widget.meeter2.id)
+        .collection('demands')
+        .doc(demandPerson.uid)
+        .collection('demand')
+        .doc(widget.demands.demand_id)
         .snapshots()
         .listen((event) {
       likes = event['demand_likes'];
       setState(() {});
     });
+
+    _auth = FirebaseAuth.instance;
     setState(() {});
   }
 
@@ -55,27 +60,32 @@ class _DetailsBuyerScreenState extends State<DetailsBuyerScreen> {
             child: Column(
               children: [
                 DetailsData(
-                  bannerImage: widget.meeter2['demand_bannerImage'],
-                  titleText: widget.meeter2['demand_title'],
-                  priceText: "\$${widget.meeter2['demand_price']}",
+                  bannerImage: widget.demands.demand_bannerImage,
+                  titleText: widget.demands.demand_title,
+                  priceText: "\$${widget.demands.demand_price}",
                   priceText1: '/ 30 min',
-                  timeText: widget.meeter2['demand_available_online']
+                  timeText: widget.demands.demand_available_online
                       ? "Availabe"
                       : "Not available",
                   likesText: likes ?? 0,
                   // categoryText: 'In Category',
-                  detailText: widget.meeter2['demand_description'],
-                  location: widget.meeter2['demand_location'],
+                  detailText: widget.demands.demand_description,
+                  location: widget.demands.demand_location,
                 ),
               ],
             ),
           ),
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: DetailBarBuyer(widget.meeter2, personDetails, likes),
-            ),
-          )
+          _auth != null
+              ? _auth.currentUser.uid != demandPerson.uid
+                  ? Positioned.fill(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child:
+                            DetailBarBuyer(widget.demands, demandPerson, likes),
+                      ),
+                    )
+                  : Container()
+              : Container()
         ],
       ),
     );

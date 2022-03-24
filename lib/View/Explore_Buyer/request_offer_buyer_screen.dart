@@ -1,16 +1,21 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_picker_timeline/date_picker_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:meeter/Controller/user_controller.dart';
+import 'package:meeter/Model/demand_data.dart';
+import 'package:meeter/Providers/user_controller.dart';
+import 'package:meeter/Model/place.dart';
 import 'package:meeter/Model/user.dart';
-import 'package:meeter/Providers/location_provider.dart';
 import 'package:meeter/Widgets/GradientButton/GradientButton.dart';
 import 'package:meeter/Widgets/HWidgets/offer_appbar_buyer.dart';
+import 'package:meeter/Providers/application_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:achievement_view/achievement_view.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class RequestOfferBuyer extends StatefulWidget {
-  final DocumentSnapshot doc;
+  final DemandData doc;
   final OurUser personDetails;
   RequestOfferBuyer({this.doc, this.personDetails});
   @override
@@ -19,40 +24,58 @@ class RequestOfferBuyer extends StatefulWidget {
 
 class _RequestOfferBuyerState extends State<RequestOfferBuyer> {
   UserController _currentUser;
-  LocationProvider userLoc;
+  Completer<GoogleMapController> _mapController = Completer();
+  StreamSubscription locationSubscription;
+  final _locationController = TextEditingController();
+  final _scacffoldKey = GlobalKey<ScaffoldState>();
+
   TextEditingController questionController = TextEditingController();
   DatePickerController datePickerController = DatePickerController();
-  //Completer<GoogleMapController> _mapController = Completer();
   DateTime date = DateTime.now();
   int _value = 1;
-  bool isButtonPressed1 = false;
-  bool isButtonPressed2 = false;
-  String time;
-  List<String> _time = [
-    '10:00 - 11:00 AM',
-    '11:00 - 12:00 PM',
-    '12:00 - 1:00 PM',
-    '1:00 - 2:00 PM',
-    '2:00 - 3:00 PM',
-    '3:00 - 4:00 PM'
-  ];
-  /*TimeOfDay _time = TimeOfDay(hour: 7, minute: 15);
-  void _selectTime() async {
+  String duration;
+  List<String> _duration = ['30', '40', '50', '60', '70', '80', '90'];
+
+  bool isButtonPressed = false;
+  int idx = 0;
+  TimeOfDay _startTime = TimeOfDay(hour: 12, minute: 00);
+
+  void _selectTime(ctx) async {
     final TimeOfDay newTime = await showTimePicker(
-      context: context,
-      initialTime: _time,
+      context: ctx,
+      initialTime: _startTime,
     );
     if (newTime != null) {
       setState(() {
-        _time = newTime;
+        _startTime = newTime;
       });
     }
-  }*/
+  }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    final applicationBloc =
+        Provider.of<ApplicationBloc>(context, listen: false);
+    locationSubscription =
+        applicationBloc.selectedLocation.stream.listen((place) {
+      if (place != null) {
+        _locationController.text = place.name;
+        _goToPlace(place);
+      } else
+        _locationController.text = "";
+    });
+  }
+
+  @override
+  void dispose() {
+    final applicationBloc =
+        Provider.of<ApplicationBloc>(context, listen: false);
+    applicationBloc.dispose();
+    locationSubscription.cancel();
+    _locationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -62,8 +85,9 @@ class _RequestOfferBuyerState extends State<RequestOfferBuyer> {
     var h = MediaQuery.of(context).size.height / 100;
     print(h);
     _currentUser = Provider.of<UserController>(context);
-    userLoc = Provider.of<LocationProvider>(context);
+    final applicationBloc = Provider.of<ApplicationBloc>(context);
     return Scaffold(
+      key: _scacffoldKey,
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -153,7 +177,7 @@ class _RequestOfferBuyerState extends State<RequestOfferBuyer> {
                               fontWeight: FontWeight.w700),
                         ),
                       ),
-                      Padding(
+                      /* Padding(
                         padding: EdgeInsets.symmetric(
                           horizontal: w * 3.6,
                         ),
@@ -164,12 +188,39 @@ class _RequestOfferBuyerState extends State<RequestOfferBuyer> {
                             fontSize: w * 4.3,
                           ),
                         ),
+                      ),*/
+
+                      Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: w * 3.6,
+                          ),
+                          child: Row(
+                            children: [
+                              MaterialButton(
+                                color: Colors.grey[200],
+                                child: Text("Select time"),
+                                onPressed: () {
+                                  _selectTime(context);
+                                },
+                              ),
+                              SizedBox(
+                                width: 15,
+                              ),
+                              Text(
+                                "${_startTime.hour == 0 ? 12 : _startTime.hour <= 12 ? _startTime.hour : _startTime.hour - 12} : ${_startTime.minute.floor() < 10 ? "0" : ""}${_startTime.minute.floor()} ${_startTime.period.index == 0 ? "AM" : "PM"}",
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              )
+                            ],
+                          )),
+                      SizedBox(
+                        height: 15,
                       ),
                       SizedBox(
-                        height: h * 16,
+                        height: h * 13,
                         child: ListView.builder(
                           shrinkWrap: true,
-                          itemCount: _time.length,
+                          itemCount: _duration.length,
                           scrollDirection: Axis.horizontal,
                           itemBuilder: (context, index) {
                             return Padding(
@@ -177,58 +228,23 @@ class _RequestOfferBuyerState extends State<RequestOfferBuyer> {
                                 horizontal: w * 3.6,
                                 vertical: h * 2.2,
                               ),
-                              child: Column(
-                                children: [
-                                  index % 2 == 0
-                                      ? Expanded(
-                                          child: Padding(
-                                            padding: EdgeInsets.only(
-                                                bottom: h * 2.2),
-                                            child: RaisedButton(
-                                              color: isButtonPressed1
-                                                  ? Colors.green[400]
-                                                  : Colors.grey[200],
-                                              child: Text(
-                                                _time[index],
-                                                style: TextStyle(
-                                                  fontSize: w * 4.3,
-                                                ),
-                                              ),
-                                              onPressed: () {
-                                                setState(() {
-                                                  time = _time[index];
-                                                  isButtonPressed1 =
-                                                      !isButtonPressed1;
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                        )
-                                      : Expanded(
-                                          child: Padding(
-                                            padding: EdgeInsets.only(
-                                                bottom: h * 2.2),
-                                            child: RaisedButton(
-                                              color: isButtonPressed2
-                                                  ? Colors.green[400]
-                                                  : Colors.grey[200],
-                                              child: Text(
-                                                _time[index],
-                                                style: TextStyle(
-                                                  fontSize: w * 4.3,
-                                                ),
-                                              ),
-                                              onPressed: () {
-                                                time = _time[index];
-                                                setState(() {
-                                                  isButtonPressed2 =
-                                                      !isButtonPressed2;
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                ],
+                              child: RaisedButton(
+                                color: isButtonPressed && idx == index
+                                    ? Colors.green[400]
+                                    : Colors.grey[200],
+                                child: Text(
+                                  _duration[index] + 'min',
+                                  style: TextStyle(
+                                    fontSize: w * 4.3,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  duration = _duration[index];
+                                  setState(() {
+                                    isButtonPressed = !isButtonPressed;
+                                    idx = index;
+                                  });
+                                },
                               ),
                             );
                           },
@@ -278,63 +294,99 @@ class _RequestOfferBuyerState extends State<RequestOfferBuyer> {
                 ),
                 SizedBox(height: h * 2.2),
                 _value == 1
-                    ? Container(
-                        width: w * 80.4,
-                        // height: h * 6.7,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(
-                            color: Colors.green,
-                            width: w * 0.04,
-                          ),
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(20),
-                          ),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: h * 2.4,
-                            horizontal: w * 1.1,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.location_on,
+                    ? Column(
+                        children: [
+                          Container(
+                            /*width: w * 80.4,
+                             height: h * 6.7,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(
                                 color: Colors.green,
-                                size: w * 7.3,
+                                width: w * 0.04,
                               ),
-                              Text(
-                                'Pin Location',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: w * 4.8,
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(20),
+                              ),
+                            ),*/
+                            child: TextField(
+                              controller: _locationController,
+                              textCapitalization: TextCapitalization.words,
+                              decoration: InputDecoration(
+                                hintText: 'Pin a Location',
+                                prefixIcon: Icon(
+                                  Icons.location_on,
+                                  color: Colors.green,
+                                ),
+                                suffixIcon: Icon(
+                                  Icons.search,
+                                  color: Colors.green,
                                 ),
                               ),
+                              onChanged: (value) =>
+                                  applicationBloc.searchPlaces(value),
+                              onTap: () =>
+                                  applicationBloc.clearSelectedLocation(),
+                            ),
+                          ),
+                          Stack(
+                            children: [
+                              Container(
+                                  height: 300.0,
+                                  child: GoogleMap(
+                                    mapType: MapType.normal,
+                                    myLocationEnabled: true,
+                                    initialCameraPosition: CameraPosition(
+                                      target: applicationBloc.currentLocation !=
+                                              null
+                                          ? LatLng(
+                                              applicationBloc
+                                                  .currentLocation.latitude,
+                                              applicationBloc
+                                                  .currentLocation.longitude)
+                                          : LatLng(0, 0),
+                                      zoom: 14,
+                                    ),
+                                    onMapCreated:
+                                        (GoogleMapController controller) {
+                                      _mapController.complete(controller);
+                                    },
+                                  )),
+                              if (applicationBloc.searchResults != null &&
+                                  applicationBloc.searchResults.length != 0)
+                                Container(
+                                    height: 300.0,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(.6),
+                                        backgroundBlendMode: BlendMode.darken)),
+                              if (applicationBloc.searchResults != null)
+                                Container(
+                                  height: 300.0,
+                                  child: ListView.builder(
+                                      itemCount:
+                                          applicationBloc.searchResults.length,
+                                      itemBuilder: (context, index) {
+                                        return ListTile(
+                                          title: Text(
+                                            applicationBloc.searchResults[index]
+                                                .description,
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
+                                          onTap: () {
+                                            applicationBloc.setSelectedLocation(
+                                                applicationBloc
+                                                    .searchResults[index]
+                                                    .placeId);
+                                          },
+                                        );
+                                      }),
+                                ),
                             ],
                           ),
-                        ),
+                        ],
                       )
-                    : Container(),
-                SizedBox(height: h * 2.2),
-                _value == 1
-                    ? Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(20),
-                          ),
-                        ),
-                        height: h * 14.6,
-                        width: w * 75.6,
-                        child: GoogleMap(
-                          //mapType: MapType.normal,
-                          //myLocationEnabled: true,
-                          initialCameraPosition: CameraPosition(
-                            target: LatLng(30.375321, 69.345116),
-                          ),
-                          /*onMapCreated: (GoogleMapController controller) {
-                            _mapController.complete(controller);
-                          },*/
-                        ))
                     : Container(),
                 SizedBox(height: 20),
                 Container(
@@ -348,37 +400,100 @@ class _RequestOfferBuyerState extends State<RequestOfferBuyer> {
                       Colors.green,
                     ],
                     onpressed: () async {
-                      print(h * 100);
-                      print(w * 100);
-                      print(date);
-                      print(time);
-                      print(_value);
-                      print(questionController.text);
+                      print(DateTime.now().hour);
+                      print(_startTime.hour);
+                      print(DateTime.now().minute);
+                      print(_startTime.minute);
+                      if (_startTime.hour == DateTime.now().hour &&
+                          _startTime.minute == DateTime.now().minute) {
+                        if (duration != null) {
+                          int totalMin = _startTime.hour < 12
+                              ? (_startTime.hour * 60 +
+                                  _startTime.minute +
+                                  int.parse(duration))
+                              : ((_startTime.hour - 12) * 60 +
+                                  _startTime.minute +
+                                  int.parse(duration));
+                          await FirebaseFirestore.instance
+                              .collection('requests')
+                              .doc(widget.personDetails.uid)
+                              .set({"r": "r"});
+                          await FirebaseFirestore.instance
+                              .collection('requests')
+                              .doc(widget.personDetails.uid)
+                              .collection('request')
+                              .add({
+                            "type": "demand",
+                            "accepted": null,
+                            "modified": null,
+                            "acceptedBy": "",
+                            "modifiedBy": "",
+                            "declinedBy": "",
+                            "ts": Timestamp.now(),
+                            "title": widget.doc.demand_title,
+                            "desc": widget.doc.demand_description,
+                            "question": questionController.text,
+                            "price": widget.doc.demand_price,
+                            "seller_location": widget.doc.demand_location,
+                            "seller_image": widget.doc.demand_person_image,
+                            "seller_id": widget.doc.demand_person_uid,
+                            "seller_name": widget.doc.demand_person_name,
+                            "date":
+                                "${date.year}-${date.month.floor() < 10 ? "0" : ""}${date.month.floor()}-${date.day.floor() < 10 ? "0" : ""}${date.day.floor()}",
+                            "time":
+                                "${_startTime.hour == 0 ? 12 : _startTime.hour <= 12 ? _startTime.hour : _startTime.hour - 12}:${_startTime.minute.floor() < 10 ? "0" : ""}${_startTime.minute.floor()}${_startTime.period.index == 0 ? "AM" : "PM"} - ${totalMin ~/ 60 == 0 ? 12 : totalMin ~/ 60 <= 12 ? totalMin ~/ 60 : (totalMin ~/ 60) - 12}:${totalMin % 60}${_startTime.period.index == 0 ? totalMin ~/ 60 >= 12 ? "PM" : "AM" : totalMin ~/ 60 >= 12 ? "AM" : "PM"}",
+                            "duration": int.parse(duration),
+                            "startTime": {
+                              "hour": _startTime.hour,
+                              "min": _startTime.minute
+                            },
+                            "location": _value == 1 ? "Physical" : "Virtual",
+                            "buyer_name":
+                                _currentUser.getCurrentUser.displayName,
+                            "buyer_image":
+                                _currentUser.getCurrentUser.avatarUrl,
+                            "buyer_id": _currentUser.getCurrentUser.uid,
+                            "meeters": [
+                              widget.doc.demand_person_uid,
+                              _currentUser.getCurrentUser.uid
+                            ]
+                          });
 
-                      await FirebaseFirestore.instance
-                          .collection('demands')
-                          .doc(widget.personDetails.uid)
-                          .set({"d": "d"});
-                      await FirebaseFirestore.instance
-                          .collection('demands')
-                          .doc(widget.personDetails.uid)
-                          .collection('demand')
-                          .add({
-                        "title": widget.doc['demand_title'],
-                        "desc": widget.doc['demand_description'],
-                        "question": questionController.text,
-                        "price": widget.doc['demand_price'],
-                        "seller_location": widget.doc['demand_location'],
-                        "seller_image": widget.doc['demand_person_image'],
-                        "date": "${date.day}-${date.month}-${date.year}",
-                        "time": time,
-                        "location": _value == 1 ? "Physical" : "Virtual",
-                        "buyer_name": _currentUser.getCurrentUser.displayName,
-                        "buyer_id": _currentUser.getCurrentUser.uid,
-                      });
+                          AchievementView(
+                            context,
+                            color: Colors.green,
+                            icon: Icon(
+                              FontAwesomeIcons.check,
+                              color: Colors.white,
+                            ),
+                            title: "Success!",
+                            elevation: 20,
+                            subTitle: "Request sent successfully",
+                            isCircle: true,
+                          )..show();
+                          Navigator.pop(context);
+                        } else {
+                          _scacffoldKey.currentState.showSnackBar(SnackBar(
+                            backgroundColor: Colors.red,
+                            content: Text(
+                              'Choose duration ',
+                              textAlign: TextAlign.center,
+                            ),
+                          ));
+                        }
+                      } else {
+                        _scacffoldKey.currentState.showSnackBar(SnackBar(
+                          backgroundColor: Colors.red,
+                          content: Text(
+                            'Invalid time ',
+                            textAlign: TextAlign.center,
+                          ),
+                        ));
+                      }
                     },
                   ),
                 ),
+                SizedBox(height: 20),
               ],
             ),
           ),
@@ -389,14 +504,26 @@ class _RequestOfferBuyerState extends State<RequestOfferBuyer> {
             name: widget.personDetails != null
                 ? widget.personDetails.displayName
                 : "",
-            work: widget.doc['demand_title'],
-            price: widget.doc['demand_price'].toString(),
+            work: widget.doc.demand_title,
+            price: widget.doc.demand_price.toString(),
             price1: '/30min',
             picture: widget.personDetails != null
                 ? widget.personDetails.avatarUrl
                 : "",
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _goToPlace(Place place) async {
+    final GoogleMapController controller = await _mapController.future;
+    controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+            target: LatLng(
+                place.geometry.location.lat, place.geometry.location.lng),
+            zoom: 14.0),
       ),
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class OfferAppBarBuyer extends StatelessWidget {
-  final IconData icon;
+  IconData icon;
   final IconData icon2;
   final IconData icon3;
   final String bartitle;
@@ -30,7 +30,7 @@ class OfferAppBarBuyer extends StatelessWidget {
     print(h);
     return SafeArea(
       child: Container(
-        height: h * 25.8,
+        height: h * 29,
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
@@ -45,55 +45,45 @@ class OfferAppBarBuyer extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: w * 2.4, vertical: h * 1.1),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: GestureDetector(
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: w * 1.9, vertical: h * 0.8),
-                              child: Icon(icon,
-                                  color: Colors.green, size: w * 7.3),
-                            ),
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                        ),
+            Padding(
+              padding:
+                  EdgeInsets.symmetric(horizontal: w * 2.4, vertical: h * 1.1),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: w * 1.9, vertical: h * 0.8),
+                        child: Icon(icon, color: Colors.green, size: w * 7.3),
                       ),
-                      Text(
-                        bartitle,
-                        style: TextStyle(
-                          color: Colors.green,
-                          fontSize: w * 6.0,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: GestureDetector(
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: w * 1.9, vertical: h * 0.8),
-                              child: Icon(icon2,
-                                  color: Color(0xff00AEFF), size: w * 7.3),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
                   ),
-                ),
-              ],
+                  SizedBox(width: 25),
+                  Text(
+                    bartitle,
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontSize: w * 6.0,
+                    ),
+                  ),
+                  GestureDetector(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: w * 1.9, vertical: h * 0.8),
+                        child: Icon(icon2,
+                            color: Color(0xff00AEFF), size: w * 7.3),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             Row(
               children: [
@@ -118,38 +108,48 @@ class OfferAppBarBuyer extends StatelessWidget {
                           ),
                   ),
                 ),
-                SizedBox(width: w * 3.2),
-                Expanded(
+                Container(
+                  height: h * 19,
+                  width: 236,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Icon(
-                            icon3,
-                            color: Colors.green,
-                            size: w * 7.3,
-                          ),
-                          Text(
-                            name,
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: w * 7.3,
-                              fontWeight: FontWeight.w600,
+                      Container(
+                        width: 236,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Icon(
+                              icon3,
+                              color: Colors.green,
+                              size: 28,
                             ),
-                          ),
-                        ],
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                name,
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       SizedBox(
                         height: h * 1.1,
                       ),
-                      Text(
-                        work,
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: w * 6.8,
-                          fontWeight: FontWeight.w400,
+                      Flexible(
+                        child: Text(
+                          work,
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       SizedBox(
@@ -160,7 +160,7 @@ class OfferAppBarBuyer extends StatelessWidget {
                             text: price,
                             style: TextStyle(
                               color: Colors.black,
-                              fontSize: w * 5.5,
+                              fontSize: 25,
                               fontWeight: FontWeight.w400,
                             ),
                             children: [

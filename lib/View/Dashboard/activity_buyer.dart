@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:meeter/Widgets/HWidgets/upcoming_data.dart';
 import 'package:meeter/Widgets/MeeterAppBar/meeterAppBar_buyer.dart';
 import 'package:meeter/Widgets/HWidgets/recent_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BuyerActivityScreen extends StatefulWidget {
-  final List<QueryDocumentSnapshot> acceptedDemandsCollection;
-  BuyerActivityScreen({this.acceptedDemandsCollection});
+  final List<QueryDocumentSnapshot> requests;
+  BuyerActivityScreen({this.requests});
   @override
   _BuyerActivityScreenState createState() => _BuyerActivityScreenState();
 }
@@ -13,13 +15,41 @@ class BuyerActivityScreen extends StatefulWidget {
 class _BuyerActivityScreenState extends State<BuyerActivityScreen> {
   bool recent = true;
   bool upcomming = false;
+  String myUsername;
+
+  Future<Stream<QuerySnapshot>> getChatRooms() async {
+    SharedPreferences _pref = await SharedPreferences.getInstance();
+    myUsername = _pref.getString('userName');
+    setState(() {});
+    Stream<QuerySnapshot> chatroomStream = FirebaseFirestore.instance
+        .collection("chatrooms")
+        .where("users", arrayContains: myUsername)
+        //.where("lastMessageSendBy", isNotEqualTo: myUsername)
+        .where("read", isEqualTo: false)
+        .snapshots();
+
+    return chatroomStream;
+  }
+
+  Stream<QuerySnapshot> chatroomStream;
+  getChatRoomStream() async {
+    chatroomStream = await getChatRooms();
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getChatRoomStream();
+  }
+
+  @override
   @override
   Widget build(BuildContext context) {
     var w = MediaQuery.of(context).size.width / 100;
     print(w);
     var h = MediaQuery.of(context).size.height / 100;
     print(h);
-
     return Scaffold(
       body: Stack(
         children: [
@@ -31,7 +61,7 @@ class _BuyerActivityScreenState extends State<BuyerActivityScreen> {
                   height: h * 16.8,
                 ),
                 Container(
-                  height: h * 67.4,
+                  // height: h * 67.4,
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -132,11 +162,73 @@ class _BuyerActivityScreenState extends State<BuyerActivityScreen> {
                       SizedBox(
                         height: h * 0.5,
                       ),
-                      RecentData(
-                        clr: Colors.green,
-                        acceptedDemandsCollection:
-                            widget.acceptedDemandsCollection,
-                      ),
+                      recent
+                          ? StreamBuilder<QuerySnapshot>(
+                              stream: chatroomStream,
+                              builder: (context, snapshot) {
+                                return snapshot.hasData
+                                    ? ListView.builder(
+                                        shrinkWrap: true,
+                                        reverse: true,
+                                        physics: NeverScrollableScrollPhysics(),
+                                        padding: EdgeInsets.all(0),
+                                        itemCount: snapshot.data.docs.length,
+                                        itemBuilder: (context, index) {
+                                          return RecentData(
+                                            clr: Colors.green,
+                                            msg: snapshot.data.docs[index],
+                                            text: "msg",
+                                            username: myUsername,
+                                          );
+                                        })
+                                    : Container();
+                              })
+                          : Container(),
+                      recent
+                          ? ListView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              padding: EdgeInsets.all(0),
+                              reverse: true,
+                              itemCount: widget.requests.length,
+                              itemBuilder: (context, index) {
+                                return widget.requests[index]["accepted"] ==
+                                            null &&
+                                        widget.requests[index]["modified"] ==
+                                            null
+                                    ? RecentData(
+                                        clr: Colors.green,
+                                        request: widget.requests[index],
+                                        text: "new",
+                                      )
+                                    : widget.requests[index]["accepted"]
+                                        ? RecentData(
+                                            clr: Colors.green,
+                                            request: widget.requests[index],
+                                            text: "accepted",
+                                          )
+                                        : widget.requests[index]["modified"]
+                                            ? RecentData(
+                                                clr: Colors.green,
+                                                request: widget.requests[index],
+                                                text: "modified",
+                                              )
+                                            : !(widget.requests[index]
+                                                        ["accepted"] ??
+                                                    true)
+                                                ? RecentData(
+                                                    clr: Colors.green,
+                                                    request:
+                                                        widget.requests[index],
+                                                    text: "cancelled",
+                                                  )
+                                                : Container();
+                              })
+                          : Container(),
+                      upcomming
+                          ? UpcomingData(
+                              clr: Colors.green, requests: widget.requests)
+                          : Container(),
                     ],
                   ),
                 ),

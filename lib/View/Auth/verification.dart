@@ -65,7 +65,7 @@ class _VerificationState extends State<Verification> {
                     height: 20,
                   ),
                   Container(
-                    padding: EdgeInsets.all(20),
+                    padding: EdgeInsets.all(15),
                     width: MediaQuery.of(context).size.width * 0.85,
                     height: 200,
                     decoration: BoxDecoration(

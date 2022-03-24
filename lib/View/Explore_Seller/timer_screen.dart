@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Timer extends StatefulWidget {
-  final QueryDocumentSnapshot acceptedDemand;
-  Timer(this.acceptedDemand);
+  final QueryDocumentSnapshot request;
+  Timer(this.request);
   @override
   _TimerState createState() => _TimerState();
 }
@@ -27,7 +27,7 @@ class _TimerState extends State<Timer> {
                 child: Column(
                   children: [
                     SizedBox(
-                      height: h * 5.4,
+                      height: h * 3.2,
                     ),
                     InkWell(
                       child: Container(
@@ -48,7 +48,7 @@ class _TimerState extends State<Timer> {
                             ),
                           ),
                         ),
-                        height: h * 39.3,
+                        height: h * 45,
                         width: w * 85.3,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(500),
@@ -265,7 +265,7 @@ class _TimerState extends State<Timer> {
                           children: [
                             ConstrainedBox(
                               constraints: BoxConstraints.tightFor(
-                                  width: w * 39.0, height: h * 5.0),
+                                  width: w * 38.0, height: h * 5.0),
                               child: ElevatedButton(
                                 onPressed: () {},
                                 child: Text(
@@ -286,7 +286,7 @@ class _TimerState extends State<Timer> {
                             ),
                             ConstrainedBox(
                               constraints: BoxConstraints.tightFor(
-                                  width: w * 39.0, height: h * 5.0),
+                                  width: w * 38.0, height: h * 5.0),
                               child: ElevatedButton(
                                 onPressed: () {},
                                 child: Text(

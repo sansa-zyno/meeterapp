@@ -1,14 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:meeter/Model/meetup_data.dart';
 import 'package:meeter/Model/user.dart';
 import 'package:meeter/Services/database.dart';
 import 'package:meeter/View/chat_screen.dart';
 import 'package:meeter/Widgets/GradientButton/GradientButton.dart';
 import 'package:meeter/View/Explore_Seller/request_offer_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:meeter/Providers/user_controller.dart';
 
 class DetailBar extends StatefulWidget {
-  final DocumentSnapshot meeter;
+  final MeetupData meeter;
   final OurUser sellerDetails;
   final int likes;
   DetailBar(this.meeter, this.sellerDetails, this.likes);
@@ -19,6 +22,7 @@ class DetailBar extends StatefulWidget {
 
 class _DetailBarState extends State<DetailBar> {
   bool isLiked = false;
+  UserController _currentUser;
 
   getChatRoomIdByUsernames(String a, String b) {
     if (a.substring(0, 1).codeUnitAt(0) > b.substring(0, 1).codeUnitAt(0)) {
@@ -33,6 +37,7 @@ class _DetailBarState extends State<DetailBar> {
     var w = MediaQuery.of(context).size.width / 100;
     print(w);
     var h = MediaQuery.of(context).size.height / 100;
+    _currentUser = Provider.of<UserController>(context);
     print(h);
     return SafeArea(
       child: Container(
@@ -61,8 +66,14 @@ class _DetailBarState extends State<DetailBar> {
                           .collection('meeters')
                           .doc(widget.sellerDetails.uid)
                           .collection('meeter')
-                          .doc(widget.meeter.id)
+                          .doc(widget.meeter.meetup_id)
                           .update({"meetup_likes": prev});
+                      await FirebaseFirestore.instance
+                          .collection('favourites')
+                          .doc(_currentUser.getCurrentUser.uid)
+                          .collection('favourite')
+                          .doc(widget.meeter.meetup_id)
+                          .delete();
 
                       isLiked = !isLiked;
                       setState(() {});
@@ -84,10 +95,38 @@ class _DetailBarState extends State<DetailBar> {
                           .collection('meeters')
                           .doc(widget.sellerDetails.uid)
                           .collection('meeter')
-                          .doc(widget.meeter.id)
+                          .doc(widget.meeter.meetup_id)
                           .update({"meetup_likes": prev});
                       isLiked = !isLiked;
                       setState(() {});
+                      await FirebaseFirestore.instance
+                          .collection('favourites')
+                          .doc(_currentUser.getCurrentUser.uid)
+                          .set({'f': "f"});
+                      await FirebaseFirestore.instance
+                          .collection('favourites')
+                          .doc(_currentUser.getCurrentUser.uid)
+                          .collection('favourite')
+                          .doc(widget.meeter.meetup_id)
+                          .set({
+                        "type": "service",
+                        "featured": widget.meeter.featured,
+                        "lat": widget.meeter.lat,
+                        "long": widget.meeter.long,
+                        "meetup_title": widget.meeter.meetup_title,
+                        "meetup_description": widget.meeter.meetup_description,
+                        "meetup_price": widget.meeter.meetup_price,
+                        "meetup_location": widget.meeter.meetup_location,
+                        "meetup_likes": widget.meeter.meetup_likes,
+                        "meetup_available_online":
+                            widget.meeter.meetup_available_online,
+                        "meetup_seller_uid": widget.meeter.meetup_seller_uid,
+                        "meetup_seller_name": widget.meeter.meetup_seller_name,
+                        "meetup_seller_image":
+                            widget.meeter.meetup_seller_image,
+                        "meetup_bannerImage": widget.meeter.meetup_bannerImage,
+                        "meetup_tags": widget.meeter.meetup_tags,
+                      });
                     },
                     icon: Container(
                       height: 40,
@@ -117,6 +156,27 @@ class _DetailBarState extends State<DetailBar> {
                         "users": [userName, widget.sellerDetails.displayName]
                       };
                       Database().createChatRoom(chatroomId, chatroomInfo);
+
+                      QuerySnapshot q = await FirebaseFirestore.instance
+                          .collection("chatrooms")
+                          .doc(chatroomId)
+                          .collection('chats')
+                          .where("read", isEqualTo: false)
+                          .get();
+                      for (int i = 0; i < q.docs.length; i++) {
+                        await FirebaseFirestore.instance
+                            .collection("chatrooms")
+                            .doc(chatroomId)
+                            .collection('chats')
+                            .doc(q.docs[i].id)
+                            .update({"read": true});
+                      }
+
+                      await FirebaseFirestore.instance
+                          .collection("chatrooms")
+                          .doc(chatroomId)
+                          .update({"read": true});
+
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -125,7 +185,6 @@ class _DetailBarState extends State<DetailBar> {
                         ),
                       );
                     } else {}
-                    ;
                   }),
             ),
             Container(

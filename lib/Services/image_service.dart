@@ -1,12 +1,14 @@
-import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:meeter/providers/user_controller.dart';
+import 'package:meeter/Model/user.dart';
 import 'package:meeter/Services/database.dart';
-import 'package:uuid/uuid.dart';
+//import 'package:uuid/uuid.dart';
 
 class ImageService {
+  ImageService() {
+    getUser();
+  }
   /*Future<String> uploadImageToStorage(File imageFile) async {
     // mention try catch later on
 
@@ -23,6 +25,10 @@ class ImageService {
       return null;
     }
   }*/
+  OurUser user;
+  getUser() async {
+    user = await UserController().getCurrentUserInfo();
+  }
 
   Future<String> getImage() async {
     String urlImage;
@@ -48,19 +54,22 @@ class ImageService {
     var lastMessageTs = DateTime.now();
     Map<String, dynamic> messageInfoMap = {
       "type": 'image',
+      "read": false,
       "photoUrl": url,
       "sendBy": username,
       "ts": lastMessageTs,
     };
 
-    String messageId = Uuid().v4();
+    //String messageId = Uuid().v4();
 
-    Database().addMessage(chatRoomId, messageId, messageInfoMap).then((value) {
+    Database().addMessage(chatRoomId, messageInfoMap).then((value) {
       Map<String, dynamic> lastMessageInfoMap = {
         "type": 'image',
+        "read": false,
         "lastMessage": url,
         "lastMessageSendTs": lastMessageTs,
-        "lastMessageSendBy": username
+        "lastMessageSendBy": username,
+        "lastMessageSendByImgUrl": user.avatarUrl
       };
       Database().updateLastMessageSend(chatRoomId, lastMessageInfoMap);
     });
@@ -73,6 +82,8 @@ class ImageService {
     // Get url from the image bucket
     String url = await getImage();
 
-    setImageMsg(url, chatRoomId, username);
+    if (url != null) {
+      setImageMsg(url, chatRoomId, username);
+    }
   }
 }

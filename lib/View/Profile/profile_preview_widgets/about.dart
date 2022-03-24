@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:meeter/Controller/user_controller.dart';
+import 'package:meeter/Providers/user_controller.dart';
+import 'package:meeter/View/Profile/edit_profile_setup.dart';
 import 'package:meeter/Widgets/TextWidgets/poppins_text.dart';
 import 'package:provider/provider.dart';
 import 'package:readmore/readmore.dart';
+import 'package:meeter/Widgets/GradientButton/GradientButton.dart';
 
 class About extends StatelessWidget {
   UserController _currentUser;
@@ -39,7 +41,7 @@ class About extends StatelessWidget {
               ),
             ),
           ),
-          _currentUser.getCurrentUser.bio != ""
+          _currentUser.getCurrentUser.bio != null
               ? Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: ReadMoreText(
@@ -141,7 +143,7 @@ class About extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: PoppinsText(
                 text:
-                    "${_currentUser.getCurrentUser.accountCreated.toDate().day}/${_currentUser.getCurrentUser.accountCreated.toDate().month}/${_currentUser.getCurrentUser.accountCreated.toDate().year}",
+                    "${_currentUser.getCurrentUser.accountCreated.toDate().day} - ${_currentUser.getCurrentUser.accountCreated.toDate().month} - ${_currentUser.getCurrentUser.accountCreated.toDate().year}",
                 clr: Colors.black,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -210,7 +212,7 @@ class About extends StatelessWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: PoppinsText(
                 text: "Languages",
                 clr: Colors.black,
@@ -226,7 +228,7 @@ class About extends StatelessWidget {
                   .doc(_currentUser.getCurrentUser.uid)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.hasData) {
+                if (snapshot.hasData && snapshot.data.data() != null) {
                   Map data = snapshot.data.data();
                   print(data.length);
                   return Container(
@@ -243,7 +245,7 @@ class About extends StatelessWidget {
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 20.0),
                               child: PoppinsText(
-                                text: data["${count[index]}Langauge"],
+                                text: data["${count[index]}Language"] ?? "",
                                 clr: Colors.grey,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
@@ -253,7 +255,7 @@ class About extends StatelessWidget {
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 20.0),
                               child: PoppinsText(
-                                text: data["${count[index]}Proficiency"],
+                                text: data["${count[index]}Proficiency"] ?? "",
                                 clr: Colors.black,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -268,13 +270,23 @@ class About extends StatelessWidget {
                     ),
                   );
                 } else {
-                  return Container(
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
+                  return Container();
                 }
               }),
+          SizedBox(height: 20),
+          Container(
+            width: 250,
+            height: 50,
+            child: GradientButton(
+              title: "Edit Profile",
+              clrs: [Color(0xff00AEFF), Color(0xff00AEFF)],
+              onpressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (ctx) => EditProfileSetup()));
+              },
+            ),
+          ),
+          SizedBox(height: 50),
         ],
       ),
     );

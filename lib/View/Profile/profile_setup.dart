@@ -1,9 +1,8 @@
 import 'package:circular_profile_avatar/circular_profile_avatar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:giffy_dialog/giffy_dialog.dart';
-import 'package:image/image.dart' as Im;
-import 'package:meeter/Controller/user_controller.dart';
-import 'package:meeter/Model/user.dart';
+import 'package:meeter/Providers/user_controller.dart';
 import 'package:meeter/Widgets/GradientButton/GradientButton.dart';
 import 'package:meeter/Widgets/TextWidgets/poppins_text.dart';
 import 'package:uuid/uuid.dart';
@@ -12,10 +11,10 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:strings/strings.dart';
 import 'package:meeter/Widgets/TextWidgets/rounded_textfield.dart';
-import 'package:meeter/Widgets/MeeterAppBar/meeterAppBar.dart';
 import 'package:meeter/Widgets/LangSelector/langSelector.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:meeter/View/Profile/youAre.dart';
+import 'package:meeter/View/Profile/about_you_setup.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileSetup extends StatefulWidget {
   _ProfileSetupState createState() => _ProfileSetupState();
@@ -27,6 +26,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
   TextEditingController occupationController = TextEditingController();
   TextEditingController countryController = TextEditingController();
   TextEditingController bioController = TextEditingController();
+  final _scacffoldKey = GlobalKey<ScaffoldState>();
 
   String postId = Uuid().v4();
   String country = "";
@@ -111,6 +111,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
     print(_currentUser.getCurrentUser.uid);
 
     return Scaffold(
+      key: _scacffoldKey,
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -127,14 +128,17 @@ class _ProfileSetupState extends State<ProfileSetup> {
                   StreamBuilder<DocumentSnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection("users")
-                          .doc(_currentUser.getCurrentUser.uid)
+                          .doc(_currentUser.getCurrentUser.uid ??
+                              FirebaseAuth.instance.currentUser.uid)
                           .snapshots(),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           Map<String, dynamic> data = snapshot.data.data();
-                          if (data.containsKey("avatarUrl")) {
-                            _currentUser.getCurrentUser.avatarUrl =
-                                data["avatarUrl"];
+                          if (data != null) {
+                            if (data.containsKey("avatarUrl")) {
+                              _currentUser.getCurrentUser.avatarUrl =
+                                  data["avatarUrl"];
+                            }
                           }
                         }
                         return CircularProfileAvatar(
@@ -156,9 +160,9 @@ class _ProfileSetupState extends State<ProfileSetup> {
                           onTap: () {
                             showDialog(
                                 context: context,
-                                builder: (_) => AssetGiffyDialog(
+                                builder: (_) => NetworkGiffyDialog(
                                       buttonOkText: Text(
-                                        "Choose From Gallery",
+                                        "Gallery",
                                         textScaleFactor: 1,
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
@@ -166,9 +170,9 @@ class _ProfileSetupState extends State<ProfileSetup> {
                                             color: Colors.white,
                                             fontWeight: FontWeight.w600),
                                       ),
-                                      image: Image.asset(
-                                        "assets/gifs/1.gif",
-                                        fit: BoxFit.cover,
+                                      image: Image.network(
+                                        'https://tenor.com/view/dp-doozp-dozopit-dolly-gif-21092749.gif',
+                                        fit: BoxFit.scaleDown,
                                       ),
                                       entryAnimation: EntryAnimation.TOP_LEFT,
                                       buttonOkColor: Color(0xff8D4BF5),
@@ -182,14 +186,18 @@ class _ProfileSetupState extends State<ProfileSetup> {
                                             fontWeight: FontWeight.w800),
                                       ),
                                       description: Text(
-                                        'It is highly advised to use your own image as a profile picture. Other people will see this photo in thier explore section. Our team will review your account based on this image.',
-                                        textAlign: TextAlign.center,
-                                        textScaleFactor: 1,
-                                        style: TextStyle(fontFamily: "Nunito"),
-                                      ),
+                                          'Other people will see this photo in their explore section. ',
+                                          //textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 14),
+                                          overflow: TextOverflow.clip
+                                          //textScaleFactor: 1,
+                                          //style:TextStyle(fontFamily: "Nunito"),
+                                          ),
                                       onOkButtonPressed: () async {
                                         await UserController().updateAvatar(
-                                            _currentUser.getCurrentUser.uid);
+                                            _currentUser.getCurrentUser.uid ??
+                                                FirebaseAuth
+                                                    .instance.currentUser.uid);
                                         Navigator.of(context).pop();
                                       },
                                     ));
@@ -413,14 +421,17 @@ class _ProfileSetupState extends State<ProfileSetup> {
                   StreamBuilder(
                       stream: FirebaseFirestore.instance
                           .collection('users')
-                          .doc(_currentUser.getCurrentUser.uid)
+                          .doc(_currentUser.getCurrentUser.uid ??
+                              FirebaseAuth.instance.currentUser.uid)
                           .snapshots(),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           Map<String, dynamic> data = snapshot.data.data();
-                          if (data.containsKey("bannerImage")) {
-                            _currentUser.getCurrentUser.bannerImage =
-                                data["bannerImage"];
+                          if (data != null) {
+                            if (data.containsKey("bannerImage")) {
+                              _currentUser.getCurrentUser.bannerImage =
+                                  data["bannerImage"];
+                            }
                           }
                         }
                         return _currentUser.getCurrentUser.bannerImage == null
@@ -438,7 +449,9 @@ class _ProfileSetupState extends State<ProfileSetup> {
                                 ),
                                 onTap: () {
                                   _currentUser.updateBanner(
-                                      _currentUser.getCurrentUser.uid, "users");
+                                      _currentUser.getCurrentUser.uid ??
+                                          FirebaseAuth.instance.currentUser.uid,
+                                      "users");
                                 },
                               )
                             : GestureDetector(
@@ -458,7 +471,9 @@ class _ProfileSetupState extends State<ProfileSetup> {
                                 ),
                                 onTap: () {
                                   _currentUser.updateBanner(
-                                      _currentUser.getCurrentUser.uid, "users");
+                                      _currentUser.getCurrentUser.uid ??
+                                          FirebaseAuth.instance.currentUser.uid,
+                                      "users");
                                 },
                               );
                       }),
@@ -474,16 +489,28 @@ class _ProfileSetupState extends State<ProfileSetup> {
                       child: GradientButton(
                         title: "Finish Setting Up",
                         clrs: [Color(0xff00AEFF), Color(0xff00AEFF)],
-                        onpressed: () {
-                          updateDataToDb();
-                          Navigator.push(
-                            context,
-                            PageTransition(
-                                type: PageTransitionType.rightToLeft,
-                                duration: Duration(milliseconds: 200),
-                                curve: Curves.easeIn,
-                                child: YouSetup()),
-                          );
+                        onpressed: () async {
+                          if (_currentUser.getCurrentUser.avatarUrl != null &&
+                              nameController.text != "") {
+                            updateDataToDb();
+                            SharedPreferences _prefs =
+                                await SharedPreferences.getInstance();
+                            _prefs.setString('userName', nameController.text);
+                            Navigator.push(
+                              context,
+                              PageTransition(
+                                  type: PageTransitionType.rightToLeft,
+                                  duration: Duration(milliseconds: 200),
+                                  curve: Curves.easeIn,
+                                  child: YouSetup()),
+                            );
+                          } else {
+                            _scacffoldKey.currentState.showSnackBar(SnackBar(
+                              backgroundColor: Colors.red,
+                              content: Text(
+                                  'Your name and profile picture cannot be empty!'),
+                            ));
+                          }
                         },
                       ),
                     ),
@@ -492,10 +519,42 @@ class _ProfileSetupState extends State<ProfileSetup> {
               ),
             ),
           ),
-          MeeterAppbar(
-            title: "Profile Setup",
-            icon: Icons.arrow_back_rounded,
-          ),
+          SafeArea(
+            child: Container(
+              height: 90,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(
+                  color: Color(0xff00AEFF),
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        "Profile Setup",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color(0xff00AEFF),
+                          fontSize: w * 6.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
         ],
       ),
     );
@@ -507,31 +566,37 @@ class _ProfileSetupState extends State<ProfileSetup> {
     UserController().updateOccupation(occupationController.text);
     FirebaseFirestore.instance
         .collection('users')
-        .doc(_currentUser.getCurrentUser.uid)
+        .doc(_currentUser.getCurrentUser.uid ??
+            FirebaseAuth.instance.currentUser.uid)
         .update({
       "bio": bioController.text,
     });
     FirebaseFirestore.instance
         .collection('users')
-        .doc(_currentUser.getCurrentUser.uid)
+        .doc(_currentUser.getCurrentUser.uid ??
+            FirebaseAuth.instance.currentUser.uid)
         .update({
       "country": countryController.text,
     });
 
-    for (int i = 0; i <= langSelector.length; i++) {
-      await FirebaseFirestore.instance
-          .collection("language")
-          .doc(_currentUser.getCurrentUser.uid)
-          .set({
-        "${langDynamicSelector[i].ith}Langauge":
-            "${langDynamicSelector[i].getcurrentLanguage}",
-        "${langDynamicSelector[i].ith}Proficiency":
-            "${langDynamicSelector[i].getcurrentProf}",
-      }, SetOptions(merge: true));
+    for (int i = 0; i < langSelector.length; i++) {
+      if (langDynamicSelector[i].getcurrentLanguage != null &&
+          langDynamicSelector[i].getcurrentProf != null) {
+        await FirebaseFirestore.instance
+            .collection("language")
+            .doc(_currentUser.getCurrentUser.uid ??
+                FirebaseAuth.instance.currentUser.uid)
+            .set({
+          "${langDynamicSelector[i].ith}Language":
+              "${langDynamicSelector[i].getcurrentLanguage}",
+          "${langDynamicSelector[i].ith}Proficiency":
+              "${langDynamicSelector[i].getcurrentProf}",
+        }, SetOptions(merge: true));
+      }
     }
 
     // await _currentUser.updateUsername(myUsername);
     // await _currentUser.updateGender(gender);
-    await _currentUser.updatePushNotifications(true);
+    //await _currentUser.updatePushNotifications(true);
   }
 }

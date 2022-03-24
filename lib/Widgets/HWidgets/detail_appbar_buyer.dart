@@ -1,17 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:meeter/Model/demand_data.dart';
 import 'package:meeter/Model/user.dart';
 import 'package:meeter/Services/database.dart';
 import 'package:meeter/View/chat_screen.dart';
 import 'package:meeter/Widgets/GradientButton/GradientButton.dart';
 import 'package:meeter/View/Explore_buyer/request_offer_buyer_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:meeter/Providers/user_controller.dart';
+import 'package:provider/provider.dart';
 
 class DetailBarBuyer extends StatefulWidget {
-  final DocumentSnapshot meeter2;
+  final DemandData demand;
   final OurUser personDetails;
   final int likes;
-  DetailBarBuyer(this.meeter2, this.personDetails, this.likes);
+  DetailBarBuyer(this.demand, this.personDetails, this.likes);
 
   @override
   _DetailBarBuyerState createState() => _DetailBarBuyerState();
@@ -19,6 +22,7 @@ class DetailBarBuyer extends StatefulWidget {
 
 class _DetailBarBuyerState extends State<DetailBarBuyer> {
   bool isLiked = false;
+  UserController _currentUser;
 
   getChatRoomIdByUsernames(String a, String b) {
     if (a.substring(0, 1).codeUnitAt(0) > b.substring(0, 1).codeUnitAt(0)) {
@@ -34,6 +38,7 @@ class _DetailBarBuyerState extends State<DetailBarBuyer> {
     print(w);
     var h = MediaQuery.of(context).size.height / 100;
     print(h);
+    _currentUser = Provider.of<UserController>(context);
     return SafeArea(
       child: Container(
         height: 90,
@@ -58,11 +63,17 @@ class _DetailBarBuyerState extends State<DetailBarBuyer> {
                       int previousLikes = widget.likes;
                       int prev = previousLikes - 1;
                       await FirebaseFirestore.instance
-                          .collection('meeters2')
+                          .collection('demands')
                           .doc(widget.personDetails.uid)
-                          .collection('meeter2')
-                          .doc(widget.meeter2.id)
+                          .collection('demand')
+                          .doc(widget.demand.demand_id)
                           .update({"demand_likes": prev});
+                      await FirebaseFirestore.instance
+                          .collection('favourites')
+                          .doc(_currentUser.getCurrentUser.uid)
+                          .collection('favourite')
+                          .doc(widget.demand.demand_id)
+                          .delete();
 
                       isLiked = !isLiked;
                       setState(() {});
@@ -78,13 +89,41 @@ class _DetailBarBuyerState extends State<DetailBarBuyer> {
                       int previousLikes = widget.likes;
                       int prev = previousLikes + 1;
                       await FirebaseFirestore.instance
-                          .collection('meeters2')
+                          .collection('demands')
                           .doc(widget.personDetails.uid)
-                          .collection('meeter2')
-                          .doc(widget.meeter2.id)
+                          .collection('demand')
+                          .doc(widget.demand.demand_id)
                           .update({"demand_likes": prev});
                       isLiked = !isLiked;
                       setState(() {});
+                      await FirebaseFirestore.instance
+                          .collection('favourites')
+                          .doc(_currentUser.getCurrentUser.uid)
+                          .set({'f': "f"});
+                      await FirebaseFirestore.instance
+                          .collection("favourites")
+                          .doc(_currentUser.getCurrentUser.uid)
+                          .collection('favourite')
+                          .doc(widget.demand.demand_id)
+                          .set({
+                        "type": "demand",
+                        "featured": widget.demand.featured,
+                        "lat": widget.demand.lat,
+                        "long": widget.demand.long,
+                        "demand_title": widget.demand.demand_title,
+                        "demand_description": widget.demand.demand_description,
+                        "demand_price": widget.demand.demand_price,
+                        "demand_likes": widget.demand.demand_likes,
+                        "demand_location": widget.demand.demand_location,
+                        "demand_available_online":
+                            widget.demand.demand_available_online,
+                        "demand_person_uid": widget.demand.demand_person_uid,
+                        "demand_person_name": widget.demand.demand_person_name,
+                        "demand_person_image":
+                            widget.demand.demand_person_image,
+                        "demand_bannerImage": widget.demand.demand_bannerImage,
+                        "demand_tags": widget.demand.demand_tags
+                      });
                     },
                     icon: Icon(
                       Icons.favorite_outline_rounded,
@@ -103,21 +142,41 @@ class _DetailBarBuyerState extends State<DetailBarBuyer> {
                   SharedPreferences preferences =
                       await SharedPreferences.getInstance();
                   String userName = preferences.getString('userName');
-                  var chatroomId = getChatRoomIdByUsernames(
-                      userName, widget.personDetails.displayName);
-                  Map<String, dynamic> chatroomInfo = {
-                    "users": [userName, widget.personDetails.displayName]
-                  };
-                  Database().createChatRoom(chatroomId, chatroomInfo);
-                  widget.personDetails != null
-                      ? Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ChatScreen(widget.personDetails),
-                          ),
-                        )
-                      : {};
+                  if (widget.personDetails != null) {
+                    var chatroomId = getChatRoomIdByUsernames(
+                        userName, widget.personDetails.displayName);
+                    Map<String, dynamic> chatroomInfo = {
+                      "users": [userName, widget.personDetails.displayName]
+                    };
+                    Database().createChatRoom(chatroomId, chatroomInfo);
+
+                    QuerySnapshot q = await FirebaseFirestore.instance
+                        .collection("chatrooms")
+                        .doc(chatroomId)
+                        .collection('chats')
+                        .where("read", isEqualTo: false)
+                        .get();
+                    for (int i = 0; i < q.docs.length; i++) {
+                      await FirebaseFirestore.instance
+                          .collection("chatrooms")
+                          .doc(chatroomId)
+                          .collection('chats')
+                          .doc(q.docs[i].id)
+                          .update({"read": true});
+                    }
+
+                    await FirebaseFirestore.instance
+                        .collection("chatrooms")
+                        .doc(chatroomId)
+                        .update({"read": true});
+
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ChatScreen(widget.personDetails),
+                        ));
+                  } else {}
                 },
               ),
             ),
@@ -132,7 +191,7 @@ class _DetailBarBuyerState extends State<DetailBarBuyer> {
                       opaque: false,
                       pageBuilder: (BuildContext context, _, __) =>
                           RequestOfferBuyer(
-                              doc: widget.meeter2,
+                              doc: widget.demand,
                               personDetails: widget.personDetails),
                     ),
                   );

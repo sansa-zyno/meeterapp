@@ -1,5 +1,4 @@
-
-import 'package:meeter/Providers/validation_item.dart';
+/*import 'package:meeter/Providers/validation_item.dart';
 import 'package:flutter/material.dart';
 
 class LoginValidation with ChangeNotifier {
@@ -42,4 +41,4 @@ class LoginValidation with ChangeNotifier {
     }
     notifyListeners();
   }
-}
+}*/

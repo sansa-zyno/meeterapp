@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:meeter/Widgets/GradientButton/GradientButton.dart';
 import 'package:meeter/Widgets/TextWidgets/poppins_text.dart';
 import 'package:meeter/Widgets/TextWidgets/rounded_textfield.dart';
-import 'package:meeter/Providers/login_validation.dart';
-import 'package:provider/provider.dart';
-
 
 class Login extends StatefulWidget {
   TextEditingController phone;
@@ -16,8 +13,6 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
- 
-
   @override
   Widget build(BuildContext context) {
     //LoginValidation validationService = Provider.of<LoginValidation>(context);
@@ -81,9 +76,7 @@ class _LoginState extends State<Login> {
                                     iconColor: Colors.cyan,
                                     label: "Phone Number",
                                     controller: widget.phone,
-                                    onChange: (text) {
-                                     
-                                    },
+                                    onChange: (text) {},
                                   ),
                                 ),
                               ),
@@ -94,7 +87,7 @@ class _LoginState extends State<Login> {
                       SizedBox(
                         height: 20,
                       ),
-                      
+
                       // Container(
                       //   padding: EdgeInsets.symmetric(horizontal: 20),
                       //   child: Row(
@@ -127,17 +120,16 @@ class _LoginState extends State<Login> {
                       // SizedBox(
                       //   height: 50,
                       // ),
-                      
+
                       Container(
                         width: 250,
                         height: 50,
                         child: Hero(
                           tag: "Login",
                           child: GradientButton(
-                            title: "Sign in",
-                            clrs: [Color(0xff00AEFF), Color(0xff00AEFF)],
-                            onpressed: widget.onpressed
-                          ),
+                              title: "Sign in",
+                              clrs: [Color(0xff00AEFF), Color(0xff00AEFF)],
+                              onpressed: widget.onpressed),
                         ),
                       ),
                       SizedBox(
@@ -233,7 +225,7 @@ class _LoginState extends State<Login> {
                       //     )
                       //   ],
                       // ),
-                      
+
                       // Row(
                       //   mainAxisAlignment: MainAxisAlignment.center,
                       //   children: [
@@ -265,7 +257,6 @@ class _LoginState extends State<Login> {
                       SizedBox(
                         height: 55,
                       ),
-                      
                     ],
                   ),
                 ],

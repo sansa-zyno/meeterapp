@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meeter/Controller/user_controller.dart';
-import 'package:meeter/Model/user.dart';
+import 'package:meeter/Providers/user_controller.dart';
 import 'package:meeter/Widgets/MeeterAppBar/meeterAppBar.dart';
 import 'package:meeter/Widgets/TextWidgets/poppins_text.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +7,7 @@ import 'package:meeter/Widgets/GradientButton/GradientButton.dart';
 import 'package:achievement_view/achievement_view.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:page_transition/page_transition.dart';
-import 'youAre.dart';
+import 'about_you_setup.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import './love.dart';
 

@@ -1,11 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:meeter/Model/demand_data.dart';
 import 'package:meeter/Widgets/MeeterAppBar/meeterAppBar_buyer.dart';
 import 'package:meeter/Widgets/HWidgets/more_lists_buyer.dart';
 
 class MoreBuyerScreen extends StatefulWidget {
-  final List<QueryDocumentSnapshot> meeters2Collection;
-  MoreBuyerScreen(this.meeters2Collection);
+  final List<List<DemandData>> demands;
+  MoreBuyerScreen(this.demands);
   @override
   _MoreBuyerScreenState createState() => _MoreBuyerScreenState();
 }
@@ -25,7 +25,7 @@ class _MoreBuyerScreenState extends State<MoreBuyerScreen> {
               children: [
                 SizedBox(height: 100),
                 MoreListsBuyer(
-                  meeters2Collection: widget.meeters2Collection,
+                  demandsCollections: widget.demands,
                 ),
               ],
             ),

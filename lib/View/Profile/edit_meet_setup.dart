@@ -4,7 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:meeter/Controller/user_controller.dart';
+import 'package:meeter/Providers/user_controller.dart';
 import 'package:meeter/Widgets/GradientButton/GradientButton.dart';
 import 'package:meeter/Widgets/TextWidgets/poppins_text.dart';
 import 'package:meeter/Widgets/progressBtn/flutter_progress_button.dart';
@@ -547,7 +547,7 @@ class _EditMeetSetupState extends State<EditMeetSetup> {
         .update({
       "meetup_title": meetTitle.text,
       "meetup_description": meetDescription.text,
-      "meetup_price": priceController.text,
+      "meetup_price": int.parse(priceController.text),
       "meetup_location": location.text,
       //"meetup_likes": 0,
       "meetup_available_online": value,

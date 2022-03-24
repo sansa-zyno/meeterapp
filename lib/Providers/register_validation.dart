@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import './validation_item.dart';
 
 class RegisterValidation with ChangeNotifier {
@@ -57,7 +57,4 @@ class RegisterValidation with ChangeNotifier {
     notifyListeners();
   }
 
-
-
-
-}
+}*/

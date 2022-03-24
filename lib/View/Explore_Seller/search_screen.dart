@@ -1,24 +1,20 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:meeter/View/Explore_Seller/search_result_screen.dart';
 import 'package:meeter/Widgets/HWidgets/search_filter.dart';
 import 'package:meeter/Widgets/HWidgets/menu.dart';
+import 'package:meeter/Providers/application_bloc.dart';
+import 'package:provider/provider.dart';
 
 class SearchScreen extends StatefulWidget {
-  final searchText;
-  SearchScreen(this.searchText);
   @override
   _SearchScreenState createState() => _SearchScreenState();
 }
 
 class _SearchScreenState extends State<SearchScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  TextEditingController searchController;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    searchController = TextEditingController(text: widget.searchText);
     setState(() {});
   }
 
@@ -27,6 +23,7 @@ class _SearchScreenState extends State<SearchScreen> {
     var w = MediaQuery.of(context).size.width / 100;
     print(w);
     var h = MediaQuery.of(context).size.height / 100;
+    ApplicationBloc _appBloc = Provider.of<ApplicationBloc>(context);
     print(h);
     return Scaffold(
       key: _scaffoldKey,
@@ -77,42 +74,6 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                             ),
                           ),
-                          /* Container(
-                            alignment: Alignment.centerRight,
-                            child: Row(
-                              children: [
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ActivityScreen(),
-                                        ),
-                                      );
-                                    },
-                                    child: Container(
-                                      height: h * 5.6,
-                                      width: w * 12.1,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius:
-                                            BorderRadius.circular(50 / 2),
-                                      ),
-                                      child: Center(
-                                        child: Icon(
-                                          Icons.notifications_outlined,
-                                          color: Colors.blue,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),*/
                         ],
                       ),
                       SizedBox(height: h * 10.1),
@@ -120,7 +81,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         children: [
                           Expanded(
                             child: TextField(
-                              controller: searchController,
+                              controller: _appBloc.searchController1,
                               decoration: InputDecoration(
                                 filled: true,
                                 fillColor: Colors.white,
@@ -130,31 +91,6 @@ class _SearchScreenState extends State<SearchScreen> {
                                   ),
                                 ),
                                 hintText: 'Search',
-                                /* suffixIcon: IconButton(
-                                  onPressed: () async {
-                                    QuerySnapshot qdoc = await FirebaseFirestore
-                                        .instance
-                                        .collection('meeters')
-                                        .where("meetup_tags",
-                                            arrayContains:
-                                                searchController.text)
-                                        .get();
-                                    qdoc != null
-                                        ? Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  SearchResultScreen(
-                                                      qdoc: qdoc),
-                                            ),
-                                          )
-                                        : {};
-                                  },
-                                  icon: Icon(
-                                    Icons.search_rounded,
-                                    color: Colors.blue,
-                                  ),
-                                ),*/
                               ),
                             ),
                           ),
@@ -167,7 +103,6 @@ class _SearchScreenState extends State<SearchScreen> {
               SizedBox(height: h * 1.6),
               SearchFilter(
                 clr: Colors.blue,
-                searchText: searchController.text,
               ),
               SizedBox(
                 height: h * 8.9,

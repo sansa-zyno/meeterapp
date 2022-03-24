@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:circular_profile_avatar/circular_profile_avatar.dart';
-import 'package:meeter/Controller/user_controller.dart';
+import 'package:meeter/Providers/user_controller.dart';
 import 'package:meeter/View/Profile/profile_preview_widgets/about.dart';
 import 'package:meeter/View/Profile/profile_preview_widgets/demands.dart';
 import 'package:meeter/View/Profile/profile_preview_widgets/service.dart';
 import 'package:meeter/Widgets/GradientButton/GradientButton.dart';
 import 'package:meeter/Widgets/TextWidgets/poppins_text.dart';
 import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'dart:io';
 
 class ProfilePreview extends StatefulWidget {
   @override
@@ -50,12 +47,20 @@ class _ProfilePreviewState extends State<ProfilePreview> {
                         ),
                         child: GestureDetector(
                           child: Container(
-                            child: Image.network(
-                              _currentUser.getCurrentUser.bannerImage ?? '',
-                              fit: BoxFit.fitWidth,
-                            ),
+                            child:
+                                _currentUser.getCurrentUser.bannerImage != null
+                                    ? Image.network(
+                                        _currentUser.getCurrentUser.bannerImage,
+                                        fit: BoxFit.fitWidth,
+                                      )
+                                    : Container(),
                           ),
-                          onTap: () {},
+                          onTap: () async {
+                            _currentUser = Provider.of<UserController>(context,
+                                listen: false);
+                            await _currentUser.updateBanner(
+                                _currentUser.getCurrentUser.uid, "users");
+                          },
                         ),
                       ),
                     ),

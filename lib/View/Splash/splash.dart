@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flare_splash_screen/flare_splash_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:meeter/Controller/user_controller.dart';
+import 'package:meeter/Providers/user_controller.dart';
 import 'package:meeter/View/Root/root.dart';
 import 'package:move_to_background/move_to_background.dart';
 import 'package:provider/provider.dart';
@@ -37,7 +37,8 @@ class _SplashState extends State<Splash> {
 
   @override
   Widget build(BuildContext context) {
-    UserController _currentUser = Provider.of<UserController>(context,listen:false);
+    UserController _currentUser =
+        Provider.of<UserController>(context, listen: false);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -61,6 +62,7 @@ class _SplashState extends State<Splash> {
         },
         until: () async {
           await _currentUser.getCurrentUserInfo();
+          print("getcurrentUser called from splash");
           return;
         },
       ),
